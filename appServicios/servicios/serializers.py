@@ -23,3 +23,4 @@ class CompraSerializer(serializers.ModelSerializer):
     class Meta:
         model=Compra
         fields= ('id','cliente','paquete','valor')
+

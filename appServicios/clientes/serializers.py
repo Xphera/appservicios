@@ -3,6 +3,11 @@ from rest_framework import serializers
 from clientes.models import Cliente
 from parametrizacion.commonChoices import TIPO_DOCUMENTO_CHOICES
 from django.contrib.auth.models import User
+from django.db import DatabaseError, transaction, IntegrityError
+
+from utils.Utils.CodigosUtil import CodeFactoryUtil
+from utils.Utils.MailUtil import EMAIL_TYPE, EmailFactory
+
 class ClienteSerializer(serializers.ModelSerializer):
     class Meta:
         model= Cliente
@@ -40,3 +45,48 @@ class  ClienteSerializer(serializers.Serializer):
         instance.save()
         return  instance
 """
+
+
+class RegistroUsuarioSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    passw = serializers.CharField(max_length=30)
+    repassw = serializers.CharField(max_length=30)
+    def validate(self,data):
+        if(data["passw"]!=data["repassw"]):
+            raise serializers.ValidationError("eL passw y repassw deben ser identicos")
+
+        if(User.objects.filter(username=data["email"]).exists()):
+            raise serializers.ValidationError(detail="Correo electronico ya registrado", code=500)
+        return data
+
+    @transaction.atomic
+    def create(self, validated_data):
+
+        user = User.objects.create_user(validated_data["email"], password=validated_data["passw"])
+        user.is_superuser = False
+        user.is_staff = False
+        user.email = validated_data["email"]
+        user.save()
+
+
+        cliente = Cliente()
+        cliente.email = user.email
+        cliente.user_id = user.id
+        cliente.save()
+
+        EmailFactory.getInstance(
+            email_type=EMAIL_TYPE.VALIDACION_REGISTRO_CLIENTE,
+            to=cliente.email,
+            nombreCliente=cliente.email,
+            codigoValidacion=CodeFactoryUtil.codigoValidacionEmail(cliente.email)).send()
+
+        return validated_data
+
+
+
+
+    def update(self, instance, validated_data):
+        return instance
+
+    class Meta:
+        validators = []

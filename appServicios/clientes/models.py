@@ -6,18 +6,18 @@ from django.contrib.auth.models import User
 # Create your models here.
 
 class Cliente(models.Model):
-    nombres = models.CharField(max_length=80, verbose_name="Nombres")
-    primerApellido = models.CharField(max_length=80, verbose_name="Primer Apellido")
-    segundoApellido = models.CharField(max_length=80, verbose_name="Segundo Apellido")
-    tipoDocumento = models.CharField(max_length=2, choices=TIPO_DOCUMENTO_CHOICES, verbose_name="Tipo de Documento")
-    numeroDocumento = models.CharField(max_length=11, verbose_name="Numero de Documento")
+    nombres = models.CharField(max_length=80, verbose_name="Nombres", null=True)
+    primerApellido = models.CharField(max_length=80, verbose_name="Primer Apellido", null=True)
+    segundoApellido = models.CharField(max_length=80, verbose_name="Segundo Apellido", null=True)
+    tipoDocumento = models.CharField(max_length=2, choices=TIPO_DOCUMENTO_CHOICES, verbose_name="Tipo de Documento", null=True)
+    numeroDocumento = models.CharField(max_length=11, verbose_name="Numero de Documento", null=True)
 
-    telefono = models.CharField(max_length=80, verbose_name="telefono de contacto")
+    telefono = models.CharField(max_length=80, verbose_name="telefono de contacto", null=True)
     email = models.EmailField(verbose_name="Correo electronico")
 
-    fechaNacimiento = models.DateField(verbose_name="Fecha de Nacimiento")
+    fechaNacimiento = models.DateField(verbose_name="Fecha de Nacimiento", null=True)
 
-    user = models.ForeignKey(to=User, related_name='clientes', on_delete=models.PROTECT, default=None, null=True)
+    user = models.ForeignKey(to=User, related_name='clientes', on_delete=models.PROTECT, default=None, null=False)
 
     def nombreCompleto(self):
         return self.nombres+" "+self.primerApellido+" "+self.segundoApellido

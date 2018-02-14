@@ -8,8 +8,8 @@ from rest_framework.renderers import JSONRenderer
 from rest_framework.parsers import JSONParser
 
 from clientes.models import Cliente
-from clientes.serializers import ClienteSerializer
-
+from django.contrib.auth.models import User
+from clientes.serializers import ClienteSerializer, RegistroUsuarioSerializer
 
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
@@ -17,6 +17,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework import permissions
 from rest_framework.response import Response
 
+from clientes.restModels import RegistroCliente
 
 from rest_framework.views import APIView
 from django.http import Http404
@@ -197,3 +198,33 @@ class ClienteGenericsDetalle(generics.RetrieveUpdateDestroyAPIView):
     queryset = Cliente.objects.all()
     serializer_class = ClienteSerializer
 
+
+
+class RegistroClienteDetalle(mixins.ListModelMixin,
+                        mixins.CreateModelMixin,
+                        generics.GenericAPIView):
+    queryset = User.objects.all()
+    serializer_class = RegistroUsuarioSerializer
+
+    def get(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        return self.create(request, *args, **kwargs)
+
+
+
+@permission_classes((permissions.AllowAny,))
+class RegistroClienteList(APIView):
+    def get(self, request, format=None):
+        usuarios= User.objects.all()
+        clientes = [RegistroCliente(cliente.email,"***","***") for cliente in usuarios]
+        clienteSerializer = RegistroUsuarioSerializer(clientes, many=True)
+        return Response(clienteSerializer.data)
+
+    def post(self, request, format=None):
+        registroUsuarioSerializer = RegistroUsuarioSerializer(data=request.data)
+        if registroUsuarioSerializer.is_valid():
+            registroUsuarioSerializer.save()
+            return Response(registroUsuarioSerializer.data, status=status.HTTP_201_CREATED)
+        return Response(registroUsuarioSerializer.errors, status=status.HTTP_400_BAD_REQUEST)

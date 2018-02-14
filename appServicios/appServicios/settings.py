@@ -36,7 +36,8 @@ PROJECT_APPS = [
     'prestadores',
     'servicios',
     'api',
-    'parametrizacion'
+    'parametrizacion',
+    'utils'
 ]
 
 REST_FRAMEWORK_APP = ['rest_framework','corsheaders']
@@ -68,7 +69,7 @@ ROOT_URLCONF = 'appServicios.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': ["C:\\appServicios\project\\appServicios\\utils\\Utils\\templatesMails\\","C:\\appServicios\project\\appServicios\\templates\\"],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -150,3 +151,21 @@ REST_FRAMEWORK = {
 ## You must add the hosts that are allowed to do cross-site requests to CORS_ORIGIN_WHITELIST, or set CORS_ORIGIN_ALLOW_ALL to True to allow all hosts.
 CORS_ORIGIN_ALLOW_ALL = True
 CORS_ALLOW_CREDENTIALS = True
+
+
+#CONFIGURACION DE ENVIO DE CORREO ELECTRONICO
+
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+
+DEFAULT_FROM_EMAIL = 'adgranados@gmail.com'
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+
+EMAIL_HOST_USER = 'adgranados@gmail.com'
+EMAIL_HOST_PASSWORD = '85103132962Ad5530'
+
+
+
+
+
