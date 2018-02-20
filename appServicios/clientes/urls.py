@@ -12,9 +12,10 @@ urlpatterns = [
  #  path('clientesClass/<int:pk>/', views.ClienteDetalleClassView.as_view()),
  #  path('clientesMixims/', views.ClienteMiximsList.as_view()),
  #  path('clientesMixims/<int:pk>/', views.ClienteMiximDetalle.as_view()),
-    path('clientes/', views.ClienteGenericsList.as_view()),
-    path('clientes/<int:pk>/', views.ClienteGenericsDetalle.as_view()),
-    path('registroClientes/', views.RegistroClienteList.as_view()),
+ #  path('clientes/', views.ClienteGenericsList.as_view()),
+ #  path('clientes/<int:pk>/', views.ClienteGenericsDetalle.as_view()),
+    path('registro/', views.RegistroClienteList.as_view()),
+    path('validarEmail/', views.ValidarEmailCode.as_view())
 ]
 
 urlpatterns = format_suffix_patterns(urlpatterns)

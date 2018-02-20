@@ -20,7 +20,7 @@ class Cliente(models.Model):
     user = models.ForeignKey(to=User, related_name='clientes', on_delete=models.PROTECT, default=None, null=False)
 
     def nombreCompleto(self):
-        return self.nombres+" "+self.primerApellido+" "+self.segundoApellido
+        return str((self.nombres,self.primerApellido,self.segundoApellido))
 
     def __str__(self):
         return str({"nombre":self.nombreCompleto(),"email":self.email})

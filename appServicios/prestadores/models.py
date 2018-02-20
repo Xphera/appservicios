@@ -23,3 +23,6 @@ class Prestador(models.Model):
 
     class Meta:
         verbose_name_plural = "prestadores"
+
+    def __str__(self):
+        return str({"nombre":self.nombres+" "+self.primerApellido+" "+self.segundoApellido,"documento":self.numeroDocumento})

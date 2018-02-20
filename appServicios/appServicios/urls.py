@@ -17,11 +17,37 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 
-from servicios import urls as serviciosUrls
+#from servicios import urls as serviciosUrls
+from rest_framework.routers import DefaultRouter
+from servicios.views import (CategoriaViewSet,ServicioViewSet,PaqueteViewSet,CompraViewSet)
+from clientes.views import (ClienteViewSet,UbicacionViewSet,MediodepagoViewSet)
+from prestadores.views import (PrestadorViewSet,)
+from parametrizacion.views import (DepartamentoViewSet, MunicipioViewSet)
+from api.views import (UserViewSet)
+router = DefaultRouter()
+
+#PRESTADORES
+router.register('prestadores',PrestadorViewSet, 'prestador')
+#SERVICIOS
+router.register('categorias', CategoriaViewSet, 'categoria')
+router.register('servicios', ServicioViewSet, 'servicio')
+router.register('paquetes', PaqueteViewSet, 'paquete')
+router.register('compras', CompraViewSet, 'compra')
+#CLIENTES
+router.register('clientes', ClienteViewSet, 'cliente')
+router.register('ubicaciones', UbicacionViewSet, 'ubicacion')
+router.register('mediosDePago', MediodepagoViewSet, 'medioDePago')
+
+#PARAMETRICOS
+router.register('departamentos',DepartamentoViewSet, 'departamento')
+router.register('municipios',MunicipioViewSet, 'municipio')
+#API
+router.register('users',UserViewSet,'user')
+
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api-auth/', include('rest_framework.urls')),
-    path('api/',include('api.urls')),
-    path('api/',include('clientes.urls')),
-    path('api/',include('servicios.urls')),
+    path('api/clientes/',include('clientes.urls')),
+    path('api/nav/',include(router.urls))
 ]

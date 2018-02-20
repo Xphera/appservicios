@@ -1,6 +1,7 @@
 
 from rest_framework import serializers
-from clientes.models import Cliente
+from clientes.models import (Cliente, Ubicacion, MedioDePago)
+from servicios.models import (Compra)
 from parametrizacion.commonChoices import TIPO_DOCUMENTO_CHOICES
 from django.contrib.auth.models import User
 from django.db import DatabaseError, transaction, IntegrityError
@@ -8,7 +9,8 @@ from django.db import DatabaseError, transaction, IntegrityError
 from utils.Utils.CodigosUtil import CodeFactoryUtil
 from utils.Utils.MailUtil import EMAIL_TYPE, EmailFactory
 
-class ClienteSerializer(serializers.ModelSerializer):
+"""
+class ClienteSerializer_old(serializers.ModelSerializer):
     class Meta:
         model= Cliente
         user = serializers.HyperlinkedIdentityField(
@@ -16,7 +18,7 @@ class ClienteSerializer(serializers.ModelSerializer):
         fields = ('id','nombres','primerApellido','segundoApellido'
                   ,'tipoDocumento','numeroDocumento','telefono','email'
                   ,'fechaNacimiento','user')
-"""
+
 
 class  ClienteSerializer(serializers.Serializer):
     id = serializers.IntegerField(read_only=True)
@@ -82,11 +84,35 @@ class RegistroUsuarioSerializer(serializers.Serializer):
 
         return validated_data
 
-
-
-
     def update(self, instance, validated_data):
         return instance
 
     class Meta:
         validators = []
+
+class ValidarEmailUsuarioSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    codigoValidacion = serializers.EmailField()
+
+
+#SERIALIZER PARA API NAVEGABLE
+
+class ClienteSerializer(serializers.HyperlinkedModelSerializer):
+
+    compras = serializers.PrimaryKeyRelatedField(many=True, queryset=Compra.objects.all())
+    class Meta:
+        model = Cliente
+        fields = ('id','nombres','primerApellido','segundoApellido'
+                  ,'tipoDocumento','numeroDocumento','telefono','email'
+                  ,'fechaNacimiento','user','compras')
+
+class UbicacionSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = Ubicacion
+        fields = ('id','cliente','title','direccion'
+                  ,'latitud','longitud','imgPath')
+
+class MedioDePagoSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = MedioDePago
+        fields = ('id','tipo','franquicia','banco')
