@@ -2,11 +2,12 @@
 from rest_framework import serializers
 from clientes.models import (Cliente, Ubicacion, MedioDePago)
 from servicios.models import (Compra)
-from parametrizacion.commonChoices import TIPO_DOCUMENTO_CHOICES
+from parametrizacion.commonChoices import TIPO_DOCUMENTO_CHOICES, SEXO_CHOICES
 from django.contrib.auth.models import User
 from django.db import DatabaseError, transaction, IntegrityError
 
 from utils.Utils.CodigosUtil import CodeFactoryUtil
+from utils.Utils import Validators
 from utils.Utils.MailUtil import EMAIL_TYPE, EmailFactory
 
 """
@@ -90,11 +91,90 @@ class RegistroUsuarioSerializer(serializers.Serializer):
     class Meta:
         validators = []
 
+
+
 class ValidarEmailUsuarioSerializer(serializers.Serializer):
     email = serializers.EmailField()
-    codigoValidacion = serializers.EmailField()
+    codigoValidacion = serializers.CharField(max_length=7)
+
+    def validate_email(self,email):
+        if ( not User.objects.filter(username=email).exists()):
+            raise serializers.ValidationError(detail="Correo electronico no esta registrado", code=500)
+        return email
+
+    def validate(self,data):
+        if (CodeFactoryUtil.codigoValidacionEmail(data["email"])!=data["codigoValidacion"]):
+            raise serializers.ValidationError(detail="El codigo de validacion no corresponde", code=500)
+        return data
 
 
+    @transaction.atomic
+    def create(self, validated_data):
+
+        #Activar Usuario por validacion exitosa
+        
+        user = User.objects.get(email=validated_data["email"])
+        user.is_active = True
+        user.save()
+
+        cliente = Cliente.objects.get(email=validated_data["email"])
+        cliente.activo = True
+        cliente.save()
+
+        return validated_data
+
+class RegistrarInformacionBasicaSerializer(serializers.Serializer):
+    tipoDocumento = serializers.ChoiceField(choices=TIPO_DOCUMENTO_CHOICES,allow_null=True)
+    numeroDocumento = serializers.CharField(max_length=11,allow_null=True)
+    nombres = serializers.CharField(max_length=80,allow_null=True)
+    primerApellido = serializers.CharField(max_length=80,allow_null=True)
+    segundoApellido = serializers.CharField(max_length=80,allow_null=True)
+    telefonoContacto = serializers.CharField(max_length=80,allow_null=True)
+    fechaNacimiento = serializers.DateField(allow_null=True)
+    sexo = serializers.ChoiceField(choices=SEXO_CHOICES,allow_null=True)
+
+    def validate_tipoDocumento(self,tipo):
+
+        TIPO_DOCUMENTOS_KEYS = [tipo[0] for tipo in TIPO_DOCUMENTO_CHOICES]
+        if(tipo not in TIPO_DOCUMENTOS_KEYS):
+            raise serializers.ValidationError(detail="El tipo de documento no es valido")
+        return tipo
+
+    def validate_nombres(self,nombre):
+        if (not Validators.es_alfanumerico(nombre, espacios=True)):
+            raise serializers.ValidationError(detail="solo se permiten valores alfanumerico")
+        return nombre
+
+    def validate_primerApellido(self, primerApellido):
+        if (not Validators.es_alfanumerico(primerApellido)):
+            raise serializers.ValidationError(detail="solo se permiten valores alfanumerico")
+        return primerApellido
+
+    def validate_segundoApellido(self, segundoApellido):
+        if (not Validators.es_alfanumerico(segundoApellido)):
+            raise serializers.ValidationError(detail="solo se permiten valores alfanumerico")
+        return segundoApellido
+
+    def validate_fechaNacimiento(self, fechaNacimiento):
+        if(not Validators.menor_que_fecha_actual(fechaNacimiento)):
+            raise serializers.ValidationError(detail="La fecha de Nacimiento debe ser Menor que la fecha Actual")
+
+    def validate_telefonoContacto(self,telefono):
+        if(not Validators.es_numero_telefonico(str(telefono))):
+            raise serializers.ValidationError(detail="El número telefonico es incorrecto")
+
+    def validate_sexo(self,sexo):
+        SEXO_KEYS = [sex[0] for sex in SEXO_CHOICES]
+        if (sexo not in SEXO_KEYS):
+            raise serializers.ValidationError(detail="El sexo no es valido")
+        return sexo
+
+    @transaction.atomic
+    def create(self, validated_data):
+        cliente = Cliente.objects.get(email=validated_data["email"])
+        cliente.activo = True
+        cliente.save()
+        return validated_data
 #SERIALIZER PARA API NAVEGABLE
 
 class ClienteSerializer(serializers.HyperlinkedModelSerializer):

@@ -18,6 +18,7 @@ class Cliente(models.Model):
     fechaNacimiento = models.DateField(verbose_name="Fecha de Nacimiento", null=True)
 
     user = models.ForeignKey(to=User, related_name='clientes', on_delete=models.PROTECT, default=None, null=False)
+    activo = models.BooleanField(default=False)
 
     def nombreCompleto(self):
         return str((self.nombres,self.primerApellido,self.segundoApellido))

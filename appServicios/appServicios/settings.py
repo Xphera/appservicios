@@ -40,7 +40,7 @@ PROJECT_APPS = [
     'utils'
 ]
 
-REST_FRAMEWORK_APP = ['rest_framework','corsheaders']
+REST_FRAMEWORK_APP = ['rest_framework','rest_framework.authtoken','corsheaders','rest_framework_swagger']
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -140,10 +140,9 @@ STATIC_URL = '/static/'
 REST_FRAMEWORK = {
     # Use Django's standard `django.contrib.auth` permissions,
     # or allow read-only access for unauthenticated users.
-    'DEFAULT_PERMISSION_CLASSES': (
-        'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly',
-    ),
-     'DEFAULT_FILTER_BACKENDS': ('django_filters.rest_framework.DjangoFilterBackend',)
+    'DEFAULT_AUTHENTICATION_CLASSES': (       'rest_framework.authentication.TokenAuthentication',),
+    'DEFAULT_PERMISSION_CLASSES': ('rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly',),
+    'DEFAULT_FILTER_BACKENDS': ('django_filters.rest_framework.DjangoFilterBackend',)
 }
 
 # https://github.com/ottoyiu/django-cors-headers/

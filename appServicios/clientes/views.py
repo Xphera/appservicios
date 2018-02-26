@@ -1,32 +1,26 @@
+from django.contrib.auth.models import User
+from django.http import ( HttpResponse, JsonResponse, Http404)
 from django.shortcuts import render
-
-
-
-from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-from rest_framework.renderers import JSONRenderer
-from rest_framework.parsers import JSONParser
 
 from clientes.models import (Cliente, Ubicacion, MedioDePago)
-from django.contrib.auth.models import User
-from clientes.serializers import (ClienteSerializer,UbicacionSerializer,MedioDePagoSerializer ,RegistroUsuarioSerializer)
-
-from rest_framework import status
-from rest_framework.decorators import api_view, permission_classes
-
-from rest_framework import (viewsets, permissions)
-from rest_framework.response import Response
-
 from clientes.restModels import RegistroCliente
+from clientes.serializers import (ClienteSerializer,UbicacionSerializer,MedioDePagoSerializer ,RegistroUsuarioSerializer, ValidarEmailUsuarioSerializer,RegistrarInformacionBasicaSerializer)
 
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.parsers import JSONParser
+from rest_framework.renderers import JSONRenderer
+from rest_framework.response import Response
 from rest_framework.views import APIView
-from django.http import Http404
+from rest_framework import (viewsets, permissions, mixins, generics, status)
 
 
-from rest_framework import mixins
-from rest_framework import generics
+
+
+
 
 # NIVEL BASICO
+"""
 @csrf_exempt
 def cliente_lista(request):
     if(request.method == 'GET'):
@@ -67,8 +61,9 @@ def cliente_detalle(request, pk):
         cliente.delete()
         return HttpResponse(status=204)
 
+"""
 #NIVEL 2 -  WRAPPER ANNOTATIONS
-
+"""
 @api_view(['GET', 'POST'])
 @permission_classes((permissions.AllowAny,))
 def cliente_lista_wrapper_anotation(request,format=None):
@@ -89,9 +84,9 @@ def cliente_lista_wrapper_anotation(request,format=None):
 @api_view(['GET', 'PUT', 'DELETE'])
 @permission_classes((permissions.AllowAny,))
 def cliente_detalle_wrapper_anotation(request, pk, format=None):
-    """
-    Retrieve, update or delete a code snippet.
-    """
+"""
+#    Retrieve, update or delete a code snippet.
+"""
     try:
         cliente = Cliente.objects.get(pk=pk)
     except Cliente.DoesNotExist:
@@ -112,8 +107,9 @@ def cliente_detalle_wrapper_anotation(request, pk, format=None):
         cliente.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-
+"""
 #nivel 3 -   VIEWS CLASS BASED
+"""
 @permission_classes((permissions.AllowAny,))
 class ClienteClassListView(APIView):
     def get(self, request, format=None):
@@ -152,11 +148,11 @@ class ClienteDetalleClassView(APIView):
         cliente = self.get_object(pk)
         cliente.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
-
+"""
 
 
 # con MIXINS
-
+"""
 class ClienteMiximsList(mixins.ListModelMixin,
                   mixins.CreateModelMixin,
                   generics.GenericAPIView):
@@ -185,35 +181,35 @@ class ClienteMiximDetalle(mixins.RetrieveModelMixin,
 
     def delete(self, request, *args, **kwargs):
         return self.destroy(request, *args, **kwargs)
-
+"""
 
 # con Generics
+"""
+    class ClienteGenericsList(generics.ListCreateAPIView):
+        queryset = Cliente.objects.all()
+        serializer_class = ClienteSerializer
+    
+    
+    class ClienteGenericsDetalle(generics.RetrieveUpdateDestroyAPIView):
+        queryset = Cliente.objects.all()
+        serializer_class = ClienteSerializer
+    
+    
+    
+    class RegistroClienteDetalle(mixins.ListModelMixin,
+                            mixins.CreateModelMixin,
+                            generics.GenericAPIView):
+        queryset = User.objects.all()
+        serializer_class = RegistroUsuarioSerializer
+    
+        def get(self, request, *args, **kwargs):
+            return self.list(request, *args, **kwargs)
+    
+        def post(self, request, *args, **kwargs):
+            return self.create(request, *args, **kwargs)
 
-class ClienteGenericsList(generics.ListCreateAPIView):
-    queryset = Cliente.objects.all()
-    serializer_class = ClienteSerializer
 
-
-class ClienteGenericsDetalle(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Cliente.objects.all()
-    serializer_class = ClienteSerializer
-
-
-
-class RegistroClienteDetalle(mixins.ListModelMixin,
-                        mixins.CreateModelMixin,
-                        generics.GenericAPIView):
-    queryset = User.objects.all()
-    serializer_class = RegistroUsuarioSerializer
-
-    def get(self, request, *args, **kwargs):
-        return self.list(request, *args, **kwargs)
-
-    def post(self, request, *args, **kwargs):
-        return self.create(request, *args, **kwargs)
-
-
-
+"""
 @permission_classes((permissions.AllowAny,))
 class RegistroClienteList(APIView):
     def get(self, request, format=None):
@@ -232,23 +228,50 @@ class RegistroClienteList(APIView):
 @permission_classes((permissions.AllowAny,))
 class ValidarEmailCode(APIView):
     def post(self, request,format=None):
-        """
-        
-        :param request: 
-        :param format: 
-        :return: 
-        """
-        return Response(request.data,status=status.HTTP_202_ACCEPTED)
 
+        veus =  ValidarEmailUsuarioSerializer(data=request.data)
+
+        if veus.is_valid():
+            try:
+                veus.save()
+                return Response({"estado":"ok"}, status=status.HTTP_202_ACCEPTED)
+            except(e):
+                return Response({"estado": "error","msj":str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        return Response(veus.errors, status= status.HTTP_400_BAD_REQUEST)
+
+
+@permission_classes((permissions.IsAuthenticated,))
+class ModificarInformacionAdicional(APIView):
     def put(self,request,format=None):
+
         data = request.data
-        data["estado"] = "error"
-        return Response(request.data,status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        email_usuario = request.user.email
+        data["email"] = request.user.email
+        registrarSerializer = RegistrarInformacionBasicaSerializer(data=data)
+        if registrarSerializer.is_valid():
+            try:
+                registrarSerializer.save()
+                return Response({"estado": "ok"}, status=status.HTTP_202_ACCEPTED)
+            except Exception as e:
+                return Response({"estado": "error", "msj": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        else:
+            return Response(registrarSerializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    def has_permission(self, request, view):
+        '''
+        
+         
+        
+        value = request.data('some_integer_field', None)
+        user = request.user
 
+        if view.action == 'create':
+            if user.name == 'David' and value > 5:
+                return False
+        '''
+        return True
 # VIEWS SETS PARA API NAVEGABLE
-
-
 
 class ClienteViewSet(viewsets.ModelViewSet):
     queryset = Cliente.objects.all()

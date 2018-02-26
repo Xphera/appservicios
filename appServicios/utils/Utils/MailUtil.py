@@ -29,7 +29,7 @@ class EmailFactory():
                     raise Exception(
                         "Falto el argumento codigoValidacion para enviar el Email de VALIDACION_REGISTRO_CLIENTE");
 
-                EmailFactory.makeEmailValidacionRegistroCliente(to,**kwargs)
+                return EmailFactory.makeEmailValidacionRegistroCliente(to,**kwargs)
             elif(email_type is EMAIL_TYPE.VALIDACION_CAMBIO_CORREO):
                 pass
             elif(email_type is EMAIL_TYPE.CODIGO_RECUPERACION_CONTRASENA):
