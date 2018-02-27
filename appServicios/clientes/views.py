@@ -244,7 +244,6 @@ class ValidarEmailCode(APIView):
 @permission_classes((permissions.IsAuthenticated,))
 class ModificarInformacionAdicional(APIView):
     def put(self,request,format=None):
-
         data = request.data
         email_usuario = request.user.email
         data["email"] = request.user.email

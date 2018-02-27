@@ -12,7 +12,7 @@ class PrestadorSerializer(serializers.HyperlinkedModelSerializer):
         fields = ('id','nombres','primerApellido','segundoApellido'
                   ,'tipoDocumento','numeroDocumento','telefono','email'
                   ,'direccion'
-                  #,'municipio'
+                  ,'municipio'
                   ,'fechaNacimiento'
-                  #,'user'
+                  ,'user'
                   ,'paquetes')

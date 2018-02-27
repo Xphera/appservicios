@@ -31,9 +31,9 @@ class Ubicacion(models.Model):
     cliente = models.ForeignKey(to=Cliente, on_delete=models.PROTECT)
     title = models.CharField(max_length=30,default="Sin Titulo")
     direccion = models.CharField(max_length=30)
-    latitud = models.IntegerField()
-    longitud = models.IntegerField()
-    imgPath = models.ImageField()
+    latitud = models.DecimalField(decimal_places=16, max_digits=21)
+    longitud = models.DecimalField(decimal_places=16, max_digits=21)
+    imgPath = models.ImageField(default=None, null=False)
 
     def __str__(self):
         return str((self.title,self.direccion))

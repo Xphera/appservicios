@@ -124,6 +124,7 @@ class ValidarEmailUsuarioSerializer(serializers.Serializer):
         return validated_data
 
 class RegistrarInformacionBasicaSerializer(serializers.Serializer):
+    email = serializers.EmailField()
     tipoDocumento = serializers.ChoiceField(choices=TIPO_DOCUMENTO_CHOICES,allow_null=True)
     numeroDocumento = serializers.CharField(max_length=11,allow_null=True)
     nombres = serializers.CharField(max_length=80,allow_null=True)
@@ -158,10 +159,11 @@ class RegistrarInformacionBasicaSerializer(serializers.Serializer):
     def validate_fechaNacimiento(self, fechaNacimiento):
         if(not Validators.menor_que_fecha_actual(fechaNacimiento)):
             raise serializers.ValidationError(detail="La fecha de Nacimiento debe ser Menor que la fecha Actual")
-
+        return fechaNacimiento
     def validate_telefonoContacto(self,telefono):
         if(not Validators.es_numero_telefonico(str(telefono))):
             raise serializers.ValidationError(detail="El número telefonico es incorrecto")
+        return telefono
 
     def validate_sexo(self,sexo):
         SEXO_KEYS = [sex[0] for sex in SEXO_CHOICES]
@@ -169,11 +171,25 @@ class RegistrarInformacionBasicaSerializer(serializers.Serializer):
             raise serializers.ValidationError(detail="El sexo no es valido")
         return sexo
 
+    def validate_email(self, email):
+        try:
+            Cliente.objects.get(email=email)
+        except:
+            raise serializers.ValidationError(detail="El correo electronico suministrado no corresponde a ningun cliente registrado")
+        return email
+
     @transaction.atomic
     def create(self, validated_data):
-        cliente = Cliente.objects.get(email=validated_data["email"])
-        cliente.activo = True
-        cliente.save()
+        try:
+            cliente = Cliente.objects.get(email=validated_data["email"])
+            cliente.activo = True
+            cliente.save()
+        except Cliente.DoesNotExist:
+            print("No existe el cliente")
+            return None
+        return validated_data
+
+    def udpate(self,validated_data):
         return validated_data
 #SERIALIZER PARA API NAVEGABLE
 
