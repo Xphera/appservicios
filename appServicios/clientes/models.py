@@ -1,6 +1,6 @@
 from django.db import models
-from parametrizacion.models import Municipio
-from parametrizacion.commonChoices import (TIPO_DOCUMENTO_CHOICES, FRANQUICIAS_CHOICES, MEDIOS_DE_PAGO_CHOICES)
+from parametrizacion.commonChoices import (TIPO_DOCUMENTO_CHOICES, FRANQUICIAS_CHOICES, MEDIOS_DE_PAGO_CHOICES, ESTADO_SESION_CHOICES)
+from servicios.models import Compra
 
 from django.contrib.auth.models import User
 # Create your models here.
@@ -14,9 +14,8 @@ class Cliente(models.Model):
 
     telefono = models.CharField(max_length=80, verbose_name="telefono de contacto", null=True)
     email = models.EmailField(verbose_name="Correo electronico")
-
     fechaNacimiento = models.DateField(verbose_name="Fecha de Nacimiento", null=True)
-
+    sexo = models.ForeignKey(to='parametrizacion.Sexo',on_delete=models.PROTECT, default=None, null=True)
     user = models.ForeignKey(to=User, related_name='clientes', on_delete=models.PROTECT, default=None, null=False)
     activo = models.BooleanField(default=False)
 
@@ -28,7 +27,9 @@ class Cliente(models.Model):
 
 
 class Ubicacion(models.Model):
-    cliente = models.ForeignKey(to=Cliente, on_delete=models.PROTECT)
+    cliente = models.ForeignKey(to='Cliente', on_delete=models.PROTECT)
+    departamento = models.ForeignKey(to='parametrizacion.Departamento', on_delete=models.PROTECT, null=True)
+    municipio = models.ForeignKey(to='parametrizacion.Municipio', on_delete=models.PROTECT,null=True)
     title = models.CharField(max_length=30,default="Sin Titulo")
     direccion = models.CharField(max_length=30)
     latitud = models.DecimalField(decimal_places=16, max_digits=21)
@@ -43,10 +44,10 @@ class Ubicacion(models.Model):
 
 
 class MedioDePago(models.Model):
-    cliente = models.ForeignKey(to=Cliente, on_delete=models.PROTECT)
+    cliente = models.ForeignKey(to='Cliente',related_name="cliente", on_delete=models.PROTECT)
 
     tipo = models.CharField(max_length=2, choices=MEDIOS_DE_PAGO_CHOICES)
-    franquicia = models.CharField(max_length=3, choices=FRANQUICIAS_CHOICES)
+    franquicia = models.ForeignKey(to='parametrizacion.FranquiciasTarjetasCredito',on_delete=models.PROTECT)
     banco = models.CharField(max_length=20)
     numero = models.CharField(max_length=10)
     fecha = models.DateField()
@@ -57,3 +58,14 @@ class MedioDePago(models.Model):
 
     class Meta:
         verbose_name_plural = "mediosDePago"
+
+class Sesion(models.Model):
+    cliente = models.ForeignKey(to='Cliente', on_delete=models.PROTECT)
+    compra = models.ForeignKey(to='servicios.Compra', on_delete=models.PROTECT)
+    ubicacion = models.ForeignKey(to='Ubicacion', on_delete=models.PROTECT)
+    estado = models.ForeignKey(to='parametrizacion.EstadoSesion', on_delete=models.PROTECT)
+
+    def __str__(self):
+        return str((self.cliente,self.compra))
+    class Meta:
+        verbose_name_plural = "sesiones"

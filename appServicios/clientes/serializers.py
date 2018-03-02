@@ -1,8 +1,9 @@
 
 from rest_framework import serializers
+from parametrizacion.models import Sexo
 from clientes.models import (Cliente, Ubicacion, MedioDePago)
-from servicios.models import (Compra)
-from parametrizacion.commonChoices import TIPO_DOCUMENTO_CHOICES, SEXO_CHOICES
+from servicios.models import Compra
+from parametrizacion.commonChoices import TIPO_DOCUMENTO_CHOICES
 from django.contrib.auth.models import User
 from django.db import DatabaseError, transaction, IntegrityError
 
@@ -49,6 +50,7 @@ class  ClienteSerializer(serializers.Serializer):
         return  instance
 """
 
+''' --------------------------------------------------------------------------------------------------------------  '''
 
 class RegistroUsuarioSerializer(serializers.Serializer):
     email = serializers.EmailField()
@@ -57,10 +59,12 @@ class RegistroUsuarioSerializer(serializers.Serializer):
     def validate(self,data):
         if(data["passw"]!=data["repassw"]):
             raise serializers.ValidationError("eL passw y repassw deben ser identicos")
-
-        if(User.objects.filter(username=data["email"]).exists()):
-            raise serializers.ValidationError(detail="Correo electronico ya registrado", code=500)
         return data
+
+    def validate_email(self,email):
+        if(User.objects.filter(username=email).exists()):
+            raise serializers.ValidationError(detail="Correo electronico ya registrado", code=500)
+        return email
 
     @transaction.atomic
     def create(self, validated_data):
@@ -91,9 +95,12 @@ class RegistroUsuarioSerializer(serializers.Serializer):
     class Meta:
         validators = []
 
-
+''' --------------------------------------------------------------------------------------------------------------  '''
 
 class ValidarEmailUsuarioSerializer(serializers.Serializer):
+    '''
+    HUC011 - Ingresar el codigo de validacion de cambio de correo.
+    '''
     email = serializers.EmailField()
     codigoValidacion = serializers.CharField(max_length=7)
 
@@ -123,7 +130,13 @@ class ValidarEmailUsuarioSerializer(serializers.Serializer):
 
         return validated_data
 
+
+''' --------------------------------------------------------------------------------------------------------------  '''
+
 class RegistrarInformacionBasicaSerializer(serializers.Serializer):
+    '''
+    HUC008 - Registro de informacion adicional
+    '''
     email = serializers.EmailField()
     tipoDocumento = serializers.ChoiceField(choices=TIPO_DOCUMENTO_CHOICES,allow_null=True)
     numeroDocumento = serializers.CharField(max_length=11,allow_null=True)
@@ -132,8 +145,7 @@ class RegistrarInformacionBasicaSerializer(serializers.Serializer):
     segundoApellido = serializers.CharField(max_length=80,allow_null=True)
     telefonoContacto = serializers.CharField(max_length=80,allow_null=True)
     fechaNacimiento = serializers.DateField(allow_null=True)
-    sexo = serializers.ChoiceField(choices=SEXO_CHOICES,allow_null=True)
-
+    sexo = serializers.PrimaryKeyRelatedField(queryset=Sexo.objects.all())
     def validate_tipoDocumento(self,tipo):
 
         TIPO_DOCUMENTOS_KEYS = [tipo[0] for tipo in TIPO_DOCUMENTO_CHOICES]
@@ -189,12 +201,14 @@ class RegistrarInformacionBasicaSerializer(serializers.Serializer):
             return None
         return validated_data
 
-    def udpate(self,validated_data):
+    def update(self,element, validated_data):
         return validated_data
+
+''' --------------------------------------------------------------------------------------------------------------  '''
 #SERIALIZER PARA API NAVEGABLE
+''' --------------------------------------------------------------------------------------------------------------  '''
 
 class ClienteSerializer(serializers.HyperlinkedModelSerializer):
-
     compras = serializers.PrimaryKeyRelatedField(many=True, queryset=Compra.objects.all())
     class Meta:
         model = Cliente
@@ -205,8 +219,7 @@ class ClienteSerializer(serializers.HyperlinkedModelSerializer):
 class UbicacionSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Ubicacion
-        fields = ('id','cliente','title','direccion'
-                  ,'latitud','longitud','imgPath')
+        fields = ('id', 'cliente', 'title', 'direccion', 'latitud', 'longitud', 'imgPath')
 
 class MedioDePagoSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:

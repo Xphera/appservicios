@@ -5,7 +5,8 @@ from django.views.decorators.csrf import csrf_exempt
 
 from clientes.models import (Cliente, Ubicacion, MedioDePago)
 from clientes.restModels import RegistroCliente
-from clientes.serializers import (ClienteSerializer,UbicacionSerializer,MedioDePagoSerializer ,RegistroUsuarioSerializer, ValidarEmailUsuarioSerializer,RegistrarInformacionBasicaSerializer)
+from clientes.serializers import (ClienteSerializer,UbicacionSerializer,MedioDePagoSerializer
+    ,RegistroUsuarioSerializer, ValidarEmailUsuarioSerializer,RegistrarInformacionBasicaSerializer)
 
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.parsers import JSONParser
@@ -212,12 +213,6 @@ class ClienteMiximDetalle(mixins.RetrieveModelMixin,
 """
 @permission_classes((permissions.AllowAny,))
 class RegistroClienteList(APIView):
-    def get(self, request, format=None):
-        usuarios= User.objects.all()
-        clientes = [RegistroCliente(cliente.email,"***","***") for cliente in usuarios]
-        clienteSerializer = RegistroUsuarioSerializer(clientes, many=True)
-        return Response(clienteSerializer.data)
-
     def post(self, request, format=None):
         registroUsuarioSerializer = RegistroUsuarioSerializer(data=request.data)
         if registroUsuarioSerializer.is_valid():
@@ -269,20 +264,21 @@ class ModificarInformacionAdicional(APIView):
             if user.name == 'David' and value > 5:
                 return False
         '''
+
         return True
 # VIEWS SETS PARA API NAVEGABLE
 
 class ClienteViewSet(viewsets.ModelViewSet):
     queryset = Cliente.objects.all()
     serializer_class = ClienteSerializer
-    permission_classes = (permissions.AllowAny,)
+    permission_classes = (permissions.IsAuthenticated,)
 
 class UbicacionViewSet(viewsets.ModelViewSet):
     queryset = Ubicacion.objects.all()
     serializer_class = UbicacionSerializer
-    permission_classes = (permissions.AllowAny,)
+    permission_classes = (permissions.IsAuthenticated,)
 
 class MediodepagoViewSet(viewsets.ModelViewSet):
     queryset = MedioDePago.objects.all()
     serializer_class = MedioDePagoSerializer
-    permission_classes = (permissions.AllowAny,)
+    permission_classes = (permissions.IsAuthenticated,)

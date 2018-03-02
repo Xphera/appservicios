@@ -1,6 +1,6 @@
 from django.db import models
-from prestadores.models import Prestador
-from clientes.models import Cliente
+
+
 # Create your models here.
 
 class Categoria(models.Model):
@@ -15,7 +15,7 @@ class Categoria(models.Model):
 
 
 class Servicio(models.Model):
-    categoria = models.ForeignKey(to=Categoria,related_name="servicios", on_delete=models.PROTECT, verbose_name="Categoria del servicio")
+    categoria = models.ForeignKey(to='Categoria',related_name="servicios", on_delete=models.PROTECT, verbose_name="Categoria del servicio")
     nombre = models.CharField(max_length=20, unique=True, null=False)
     detalle = models.CharField(max_length=150, null=False)
     imagePath = models.FileField(upload_to='media/servicios', null=False)
@@ -27,8 +27,8 @@ class Servicio(models.Model):
 
 
 class Paquete(models.Model):
-    servicio = models.ForeignKey(to=Servicio,related_name="paquetes", on_delete=models.PROTECT)
-    prestador = models.ForeignKey(to=Prestador,related_name="paquetes", on_delete=models.PROTECT)
+    servicio = models.ForeignKey(to='Servicio',related_name="paquetes", on_delete=models.PROTECT)
+    prestador = models.ForeignKey(to='prestadores.Prestador',related_name="paquetes", on_delete=models.PROTECT)
     nombre = models.CharField(max_length=20, unique=True, null=False)
     detalle = models.CharField(max_length=150, null=False)
     cantidadDeSesiones = models.IntegerField()
@@ -40,10 +40,11 @@ class Paquete(models.Model):
 
 
 class Compra(models.Model):
-    cliente = models.ForeignKey(to=Cliente,related_name="compras", on_delete=models.PROTECT)
-    paquete = models.ForeignKey(to=Paquete,related_name="compras", on_delete=models.PROTECT)
-    valor = models.IntegerField()
-    created = models.DateTimeField(auto_now_add=True)
+    cliente  = models.ForeignKey(to='clientes.Cliente',related_name="clientes", on_delete=models.PROTECT)
+    paquete  = models.ForeignKey(to='Paquete',related_name="paquetes", on_delete=models.PROTECT)
+    medioPago = models.ForeignKey(to="clientes.MedioDePago",on_delete=models.PROTECT)
+    valor    = models.IntegerField()
+    created  = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
 
     def __str__(self):

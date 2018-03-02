@@ -21,6 +21,8 @@ class Prestador(models.Model):
 
     user = models.ForeignKey(to=User, related_name='prestadores', on_delete=models.PROTECT, default=None, null=True)
 
+    servicios = models.ManyToManyField('servicios.Servicio')
+
     class Meta:
         verbose_name_plural = "prestadores"
 
