@@ -49,3 +49,14 @@ class Compra(models.Model):
 
     def __str__(self):
         return '('+self.cliente.numeroDocumento+'-'+self.paquete.nombre+') $['+str(self.valor)+']'
+
+
+class Opinion(models.Model):
+    cliente = models.ForeignKey(to='clientes.Cliente', related_name="opiniones", on_delete=models.PROTECT)
+    servicio = models.ForeignKey(to='Servicio', related_name="opiniones", on_delete=models.PROTECT)
+    prestador = models.ForeignKey(to='prestadores.Prestador', related_name="opiniones", on_delete=models.PROTECT)
+    detalle = models.TextField(max_length=250)
+    created  = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return str({"cliente":self.cliente,"servicio":self.servicio,"prestador":self.prestador})

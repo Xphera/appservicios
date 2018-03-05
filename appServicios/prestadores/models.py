@@ -23,6 +23,9 @@ class Prestador(models.Model):
 
     servicios = models.ManyToManyField('servicios.Servicio')
 
+    created = models.DateTimeField(auto_now_add=True)
+    modified = models.DateTimeField(auto_now=True)
+
     class Meta:
         verbose_name_plural = "prestadores"
 

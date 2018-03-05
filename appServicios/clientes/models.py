@@ -19,6 +19,9 @@ class Cliente(models.Model):
     user = models.ForeignKey(to=User, related_name='clientes', on_delete=models.PROTECT, default=None, null=False)
     activo = models.BooleanField(default=False)
 
+    created = models.DateTimeField(auto_now_add=True)
+    modified = models.DateTimeField(auto_now=True)
+
     def nombreCompleto(self):
         return str((self.nombres,self.primerApellido,self.segundoApellido))
 
@@ -36,6 +39,8 @@ class Ubicacion(models.Model):
     longitud = models.DecimalField(decimal_places=16, max_digits=21)
     imgPath = models.ImageField(default=None, null=False)
 
+    created = models.DateTimeField(auto_now_add=True)
+    modified = models.DateTimeField(auto_now=True)
     def __str__(self):
         return str((self.title,self.direccion))
 
@@ -53,6 +58,8 @@ class MedioDePago(models.Model):
     fecha = models.DateField()
     cvv = models.CharField(max_length=3)
 
+    created = models.DateTimeField(auto_now_add=True)
+    modified = models.DateTimeField(auto_now=True)
     def __str__(self):
         return self.franquicia+" ["+self.numero[:3]+"...]"
 
@@ -65,7 +72,9 @@ class Sesion(models.Model):
     ubicacion = models.ForeignKey(to='Ubicacion', on_delete=models.PROTECT)
     estado = models.ForeignKey(to='parametrizacion.EstadoSesion', on_delete=models.PROTECT)
 
+    created = models.DateTimeField(auto_now_add=True)
+    modified = models.DateTimeField(auto_now=True)
+
     def __str__(self):
         return str((self.cliente,self.compra))
-    class Meta:
-        verbose_name_plural = "sesiones"
+

@@ -20,18 +20,18 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='departamento',
             name='modified',
-            field=models.DateTimeField(auto_now=True),
+            field=models.DateTimeField(auto_now=True,default=django.utils.timezone.now),
         ),
         migrations.AddField(
             model_name='estadosesion',
             name='created',
-            field=models.DateTimeField(auto_now_add=True, default=1),
+            field=models.DateTimeField(auto_now_add=True, default=django.utils.timezone.now),
             preserve_default=False,
         ),
         migrations.AddField(
             model_name='estadosesion',
             name='modified',
-            field=models.DateTimeField(auto_now=True),
+            field=models.DateTimeField(auto_now=True, default=django.utils.timezone.now),
         ),
         migrations.AddField(
             model_name='franquiciastarjetascredito',
@@ -42,7 +42,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='franquiciastarjetascredito',
             name='modified',
-            field=models.DateTimeField(auto_now=True),
+            field=models.DateTimeField(auto_now=True, default=django.utils.timezone.now),
         ),
         migrations.AddField(
             model_name='municipio',
@@ -53,7 +53,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='municipio',
             name='modified',
-            field=models.DateTimeField(auto_now=True),
+            field=models.DateTimeField(auto_now=True, default=django.utils.timezone.now),
         ),
         migrations.AddField(
             model_name='sexo',
@@ -64,7 +64,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='sexo',
             name='modified',
-            field=models.DateTimeField(auto_now=True),
+            field=models.DateTimeField(auto_now=True, default=django.utils.timezone.now),
         ),
         migrations.AddField(
             model_name='tipodocumento',
@@ -75,7 +75,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='tipodocumento',
             name='modified',
-            field=models.DateTimeField(auto_now=True),
+            field=models.DateTimeField(auto_now=True, default=django.utils.timezone.now),
         ),
         migrations.AddField(
             model_name='tipomediopago',
@@ -86,6 +86,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='tipomediopago',
             name='modified',
-            field=models.DateTimeField(auto_now=True),
+            field=models.DateTimeField(auto_now=True, default=django.utils.timezone.now),
         ),
     ]

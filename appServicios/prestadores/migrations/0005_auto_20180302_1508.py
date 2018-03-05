@@ -20,6 +20,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='prestador',
             name='modified',
-            field=models.DateTimeField(auto_now=True),
+            field=models.DateTimeField(auto_now=True, default=django.utils.timezone.now),
         ),
     ]

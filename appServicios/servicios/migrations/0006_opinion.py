@@ -18,7 +18,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('detalle', models.TextField(max_length=250)),
-                ('created', models.DateTimeField(auto_now_add=True)),
+                ('created', models.DateTimeField(auto_now_add=True, default=django.utils.timezone.now)),
                 ('cliente', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='opiniones', to='clientes.Cliente')),
                 ('prestador', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='opiniones', to='prestadores.Prestador')),
                 ('servicio', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='opiniones', to='servicios.Servicio')),
