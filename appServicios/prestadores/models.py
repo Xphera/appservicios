@@ -6,13 +6,13 @@ from django.contrib.auth.models import User
 
 class Prestador(models.Model):
 
-    nombres = models.TextField(max_length=80, verbose_name="Nombres")
-    primerApellido = models.TextField(max_length=80, verbose_name="Primer Apellido")
-    segundoApellido = models.TextField(max_length=80, verbose_name="Segundo Apellido")
+    nombres = models.CharField(max_length=80, verbose_name="Nombres")
+    primerApellido = models.CharField(max_length=80, verbose_name="Primer Apellido")
+    segundoApellido = models.CharField(max_length=80, verbose_name="Segundo Apellido")
     tipoDocumento = models.CharField(max_length=2, choices=TIPO_DOCUMENTO_CHOICES, verbose_name="Tipo de Documento")
     numeroDocumento = models.CharField(max_length=11, verbose_name="Numero de Documento")
 
-    telefono = models.TextField(max_length=80, verbose_name="telefono de contacto")
+    telefono = models.CharField(max_length=80, verbose_name="telefono de contacto")
     email = models.EmailField(verbose_name="Correo electronico")
     direccion = models.CharField(max_length=100)
     municipio = models.ForeignKey(to=Municipio, on_delete=models.PROTECT)
@@ -22,6 +22,12 @@ class Prestador(models.Model):
     user = models.ForeignKey(to=User, related_name='prestadores', on_delete=models.PROTECT, default=None, null=True)
 
     servicios = models.ManyToManyField('servicios.Servicio')
+
+    perfil = models.TextField(max_length=300, verbose_name="Perfil",null=True)
+    calificacion = models.CharField(max_length=2,null=True,verbose_name="Calificación")
+    insignia = models.CharField(max_length=2,null=True,verbose_name="Insignia")
+    profesion = models.CharField(max_length=56,null=True,verbose_name="Profesión")
+    imagePath = models.FileField(upload_to="media/prestadores",null=True)
 
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
