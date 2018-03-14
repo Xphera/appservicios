@@ -5,7 +5,7 @@ from django.views.decorators.csrf import csrf_exempt
 
 from clientes.models import (Cliente, Ubicacion, MedioDePago)
 from clientes.restModels import RegistroCliente
-from clientes.serializers import (ClienteSerializer,UbicacionSerializer,MedioDePagoSerializer
+from clientes.serializers import (ClienteSerializer,UbicacionSerializer,UbicacionSerializerApi,MedioDePagoSerializer
     ,RegistroUsuarioSerializer, ValidarEmailUsuarioSerializer,RegistrarInformacionBasicaSerializer)
 
 from rest_framework.decorators import api_view, permission_classes
@@ -255,8 +255,6 @@ class ModificarInformacionAdicional(APIView):
     def has_permission(self, request, view):
         '''
         
-         
-        
         value = request.data('some_integer_field', None)
         user = request.user
 
@@ -266,6 +264,15 @@ class ModificarInformacionAdicional(APIView):
         '''
 
         return True
+
+@permission_classes((permissions.IsAuthenticated,))
+class ClienteUbicaciones(APIView):
+    def get(self,request,format=None):
+        ubicaciones = Ubicacion.objects.filter(cliente__user = request.user)
+        ubicacionesSerializer = UbicacionSerializerApi(ubicaciones, many=True)
+        return Response(ubicacionesSerializer.data)
+
+
 # VIEWS SETS PARA API NAVEGABLE
 
 class ClienteViewSet(viewsets.ModelViewSet):

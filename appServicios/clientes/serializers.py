@@ -55,7 +55,7 @@ class  ClienteSerializer(serializers.Serializer):
 class RegistroUsuarioSerializer(serializers.Serializer):
     email = serializers.EmailField()
     passw = serializers.CharField(max_length=30)
-    repassw = serializers.CharField(max_length=30)
+    repassw = serializers.CharField( max_length=30)
     def validate(self,data):
         if(data["passw"]!=data["repassw"]):
             raise serializers.ValidationError("eL passw y repassw deben ser identicos")
@@ -215,6 +215,11 @@ class ClienteSerializer(serializers.HyperlinkedModelSerializer):
         fields = ('id','nombres','primerApellido','segundoApellido'
                   ,'tipoDocumento','numeroDocumento','telefono','email'
                   ,'fechaNacimiento','user','compras')
+
+class UbicacionSerializerApi(serializers.ModelSerializer):
+    class Meta:
+        model = Ubicacion
+        fields = ('id', 'cliente', 'title', 'direccion', 'latitud', 'longitud', 'imgPath')
 
 class UbicacionSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
