@@ -219,7 +219,7 @@ class ClienteSerializer(serializers.HyperlinkedModelSerializer):
 class UbicacionSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Ubicacion
-        fields = ('id', 'cliente', 'title', 'direccion', 'latitud', 'longitud', 'imgPath')
+        fields = ('id', 'cliente', 'titulo', 'direccion', 'latitud', 'longitud', 'imgPath','complemento')
 
 class MedioDePagoSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
