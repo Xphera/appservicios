@@ -267,11 +267,65 @@ class ModificarInformacionAdicional(APIView):
 
 @permission_classes((permissions.IsAuthenticated,))
 class ClienteUbicaciones(APIView):
+    
     def get(self,request,format=None):
+
         ubicaciones = Ubicacion.objects.filter(cliente__user = request.user)
         ubicacionesSerializer = UbicacionSerializerApi(ubicaciones, many=True)
         return Response(ubicacionesSerializer.data)
 
+    def post(self,request,format=None):
+
+        data = request.data
+        cliente = Cliente.objects.get(user_id=request.user.id)
+        data["cliente"] =  cliente.id
+        ubicacionesSerializer = UbicacionSerializerApi(data=request.data)
+        if ubicacionesSerializer.is_valid():
+            try:
+                ubicacionesSerializer.save()
+                return Response({"estado": "ok"}, status=status.HTTP_202_ACCEPTED)
+            except Exception as e:
+                return Response({"estado": "error", "msj": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        else:
+            return Response(ubicacionesSerializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def put(self,request,pk,format=None):
+        
+        data = request.data
+        cliente = Cliente.objects.get(user_id=request.user.id)
+        data["cliente"] = cliente.id
+        ubicacion = Ubicacion.objects.get(pk=pk)
+
+        if (cliente.id == ubicacion.cliente_id):
+            ubicacionesSerializer = UbicacionSerializerApi(ubicacion,data=data)                
+            if ubicacionesSerializer.is_valid():
+                try:
+                    ubicacionesSerializer.save()
+                    return Response({"estado": "ok"}, status=status.HTTP_202_ACCEPTED)
+                except Exception as e:
+                    return Response({"estado": "error", "msj": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            else:
+                return Response(ubicacionesSerializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        else:
+           return Response({"estado": "error", "msj": "Ubicación No pertenece a usuario"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+    def delete(self,request,pk,format=None):
+        
+            try:          
+                ubicacion = Ubicacion.objects.get(pk=pk)
+                cliente = Cliente.objects.get(user_id=request.user.id)
+                if (cliente.id == ubicacion.cliente_id):                
+                    ubicacion.delete()
+                    return Response({"estado": "ok"}, status=status.HTTP_202_ACCEPTED)
+                else:
+                    return Response({"estado": "error", "msj": "Ubicación No pertenece a usuario"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)             
+            except Exception as e:
+                return Response({"estado": "error", "msj": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+             
+
+
+    
 
 # VIEWS SETS PARA API NAVEGABLE
 
