@@ -38,7 +38,7 @@ class Ubicacion(models.Model):
     latitud = models.DecimalField(decimal_places=16, max_digits=21)
     longitud = models.DecimalField(decimal_places=16, max_digits=21)
     imgPath = models.ImageField(default=None, null=False)
-    complemento = models.CharField(null=True,max_length=50) 
+    complemento = models.CharField(blank=True,max_length=50) 
 
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
