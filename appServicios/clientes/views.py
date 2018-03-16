@@ -283,7 +283,7 @@ class ClienteUbicaciones(APIView):
         if ubicacionesSerializer.is_valid():
             try:
                 ubicacionesSerializer.save()
-                return Response({"estado": "ok"}, status=status.HTTP_202_ACCEPTED)
+                return Response(ubicacionesSerializer.data)
             except Exception as e:
                 return Response({"estado": "error", "msj": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         else:
