@@ -50,10 +50,10 @@ class Ubicacion(models.Model):
 
 
 class MedioDePago(models.Model):
-    cliente = models.ForeignKey(to='Cliente',related_name="cliente", on_delete=models.PROTECT)
+    cliente = models.ForeignKey(to='Cliente',related_name="medio_de_pago", on_delete=models.PROTECT)
 
     tipo = models.CharField(max_length=2, choices=MEDIOS_DE_PAGO_CHOICES)
-    franquicia = models.ForeignKey(to='parametrizacion.FranquiciasTarjetasCredito',on_delete=models.PROTECT)
+    franquicia = models.ForeignKey(to='parametrizacion.FranquiciasTarjetasCredito', related_name="medio_de_pago",on_delete=models.PROTECT)
     banco = models.CharField(max_length=20)
     numero = models.CharField(max_length=10)
     fecha = models.DateField()

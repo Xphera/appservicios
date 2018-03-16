@@ -268,6 +268,7 @@ class ModificarInformacionAdicional(APIView):
 @permission_classes((permissions.IsAuthenticated,))
 class ClienteUbicaciones(APIView):
     
+
     def get(self,request,format=None):
 
         ubicaciones = Ubicacion.objects.filter(cliente__user = request.user)

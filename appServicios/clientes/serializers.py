@@ -219,7 +219,9 @@ class ClienteSerializer(serializers.HyperlinkedModelSerializer):
 class UbicacionSerializerApi(serializers.ModelSerializer):
     class Meta:
         model = Ubicacion
+
         fields = ('id', 'cliente', 'titulo', 'direccion', 'latitud', 'longitud', 'imgPath','complemento')
+
 
 class UbicacionSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
