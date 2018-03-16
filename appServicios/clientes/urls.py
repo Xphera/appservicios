@@ -17,7 +17,8 @@ urlpatterns = [
     path('registro/', views.RegistroClienteList.as_view()),
     path('validarEmail/', views.ValidarEmailCode.as_view()),
     path('modificarInformacionAdicional/', views.ModificarInformacionAdicional.as_view()),
-    path('Ubicaciones/', views.ClienteUbicaciones.as_view())
+    path('Ubicaciones/', views.ClienteUbicaciones.as_view()),
+    path('Ubicaciones/<int:id>/', views.ClienteUbicacion.as_view())
     
 ]
 

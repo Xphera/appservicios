@@ -1,6 +1,6 @@
 from django.contrib.auth.models import User
 from django.http import ( HttpResponse, JsonResponse, Http404)
-from django.shortcuts import render
+from django.shortcuts import render,get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
 
 from clientes.models import (Cliente, Ubicacion, MedioDePago)
@@ -15,7 +15,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import (viewsets, permissions, mixins, generics, status)
 
-
+from clientes.permissions import EsDueño
 
 
 
@@ -252,26 +252,47 @@ class ModificarInformacionAdicional(APIView):
         else:
             return Response(registrarSerializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def has_permission(self, request, view):
-        '''
-        
-        value = request.data('some_integer_field', None)
-        user = request.user
 
-        if view.action == 'create':
-            if user.name == 'David' and value > 5:
-                return False
-        '''
 
-        return True
 
-@permission_classes((permissions.IsAuthenticated,))
+
 class ClienteUbicaciones(APIView):
+    permission_classes = (permissions.IsAuthenticated,)
     def get(self,request,format=None):
         ubicaciones = Ubicacion.objects.filter(cliente__user = request.user)
         ubicacionesSerializer = UbicacionSerializerApi(ubicaciones, many=True)
         return Response(ubicacionesSerializer.data)
+    def post(self,request,format=None):
+        pass
 
+class ClienteUbicacion(APIView):
+
+    permission_classes= (EsDueño,)
+
+    def get(self,request,id,format=None):
+        if(Ubicacion.objects.filter(pk=id).count()>0):
+            ubicacion = Ubicacion.objects.get(id=id)
+            self.check_object_permissions(self.request,ubicacion)
+            ubicacionesSerializer = UbicacionSerializerApi(ubicacion)
+            return Response(ubicacionesSerializer.data)
+        else:
+            return Response("La Ubicacion no existe", status=status.HTTP_404_NOT_FOUND)
+
+    def put(self,request,id,format=None):
+        if(Ubicacion.objects.filter(pk=id).count()>0):
+            ubicacion = Ubicacion.objects.get(pk=id)
+            self.check_object_permissions(self.request,ubicacion)
+            ubicacionesSerializer = UbicacionSerializerApi(ubicacion, data=request.data)
+            if(ubicacionesSerializer.is_valid()):
+                ubicacionesSerializer.save()
+                return Response(ubicacionesSerializer.data, status=status.HTTP_200_OK)
+            else:
+                return Response(ubicacionesSerializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response("La Ubicacion no existe", status=status.HTTP_404_NOT_FOUND)
+
+    def delete(self,request,id,format=None):
+        pass
 
 # VIEWS SETS PARA API NAVEGABLE
 
