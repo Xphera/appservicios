@@ -304,7 +304,9 @@ class ClienteUbicacion(APIView):
 
     def put(self,request,id,format=None):
         if(Ubicacion.objects.filter(pk=id).count()>0):
+            data = request.data            
             ubicacion = Ubicacion.objects.get(pk=id)
+            data['cliente'] = ubicacion.cliente.id
             self.check_object_permissions(self.request,ubicacion)
             ubicacionesSerializer = UbicacionSerializerApi(ubicacion, data=request.data)
             if(ubicacionesSerializer.is_valid()):
