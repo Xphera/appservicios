@@ -257,13 +257,28 @@ class ModificarInformacionAdicional(APIView):
 
 
 class ClienteUbicaciones(APIView):
+    
     permission_classes = (permissions.IsAuthenticated,)
+    
     def get(self,request,format=None):
         ubicaciones = Ubicacion.objects.filter(cliente__user = request.user)
         ubicacionesSerializer = UbicacionSerializerApi(ubicaciones, many=True)
         return Response(ubicacionesSerializer.data)
+
     def post(self,request,format=None):
-        pass
+        data = request.data
+        cliente = Cliente.objects.get(user_id=request.user.id)
+        data["cliente"] =  cliente.id
+        ubicacionesSerializer = UbicacionSerializerApi(data=request.data)
+        if ubicacionesSerializer.is_valid():
+            try:
+                ubicacionesSerializer.save()
+                return Response({"estado": "ok"}, status=status.HTTP_202_ACCEPTED)
+            except Exception as e:
+                return Response({"estado": "error", "msj": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        else:
+            return Response(ubicacionesSerializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 class ClienteUbicacion(APIView):
 
@@ -292,7 +307,19 @@ class ClienteUbicacion(APIView):
             return Response("La Ubicacion no existe", status=status.HTTP_404_NOT_FOUND)
 
     def delete(self,request,id,format=None):
-        pass
+        
+            try:
+                ubicacion = Ubicacion.objects.get(pk=id)
+                self.check_object_permissions(self.request,ubicacion)
+                ubicacion.delete()
+                return Response({"estado": "ok"}, status=status.HTTP_202_ACCEPTED)          
+            except Exception as e:
+                return Response({"estado": "error", "msj": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+             
+
+
+    
+
 
 # VIEWS SETS PARA API NAVEGABLE
 

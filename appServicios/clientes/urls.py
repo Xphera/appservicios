@@ -17,13 +17,9 @@ urlpatterns = [
     path('registro/', views.RegistroClienteList.as_view()),
     path('validarEmail/', views.ValidarEmailCode.as_view()),
     path('modificarInformacionAdicional/', views.ModificarInformacionAdicional.as_view()),
-<<<<<<< HEAD
     path('Ubicaciones/', views.ClienteUbicaciones.as_view()),
     path('Ubicaciones/<int:id>/', views.ClienteUbicacion.as_view())
-=======
-    path('ubicaciones/', views.ClienteUbicaciones.as_view()),
-    path('ubicaciones/<int:pk>/', views.ClienteUbicaciones.as_view())
->>>>>>> aa5908021bf5eb44b30b24fe6fae1c58e15a8d83
+
     
 ]
 
