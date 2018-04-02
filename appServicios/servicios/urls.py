@@ -4,6 +4,7 @@ from django.urls import path
 from rest_framework.routers import DefaultRouter
 from rest_framework.urlpatterns import format_suffix_patterns
 
+
 from servicios.views import *
 
 # Create a router and register our viewsets with it.
@@ -20,15 +21,12 @@ router.register('categorias', CategoriaViewSet, 'categoria')
 router.register('servicios', ServicioViewSet, 'servicio')
 router.register('paquetes', PaqueteViewSet, 'paquete')
 router.register('compras', CompraViewSet, 'compra')
-
-
-
-
-
+router.register('compradetalle', CompraDetalleViewSet, 'compradetalle')
 
 
 urlpatterns = [
     path('base/',include(router.urls)),
+    path('compradetalle/', CompraDetalleViewSet.as_view()),
 ]
 
 #urlpatterns = format_suffix_patterns(urlpatterns)

@@ -1,6 +1,8 @@
-from servicios.models import (Categoria, Servicio, Paquete, Compra)
+from servicios.models import (Categoria, Servicio, Paquete, Compra,CompraDetalle)
+from prestadores.models import (Prestador)
 from prestadores.models import (Prestador)
 from prestadores.serializers import PrestadorSerializer
+from parametrizacion.models import (EstadoCompraDetalle)
 from rest_framework import serializers
 
 
@@ -25,16 +27,38 @@ class PaqueteSerializer(serializers.HyperlinkedModelSerializer):
                   ,'prestador'
                   ,'nombre'
                   ,'detalle'
-                  ,'cantidadDeSesiones')
+                  ,'cantidadDeSesiones'
+                  ,'valor'
+                  )
 
-
-
-
-
+class CompraDetalleSerializer(serializers.HyperlinkedModelSerializer):
+    compra = serializers.PrimaryKeyRelatedField(queryset=Compra.objects.all())
+    estado = serializers.PrimaryKeyRelatedField(queryset=EstadoCompraDetalle.objects.all())
+    prestador = serializers.PrimaryKeyRelatedField(queryset=Prestador.objects.all())
+        
+    class Meta:
+        model = CompraDetalle
+        fields = (
+                    'id'
+                    ,'compra'
+                    ,'cantidadDeSesiones'
+                    ,'nombre'
+                    ,'detalle'
+                    ,'prestador'
+                    ,'valor'
+                    ,'sesionEjecutada'
+                    ,'created'
+                    ,'modified'
+                    ,'estado'
+                  )
 
 
 class CompraSerializer(serializers.HyperlinkedModelSerializer):
+   
     class Meta:
         model = Compra
-        fields= ('id','cliente','paquete','valor')
+        fields= ('id','cliente','valor'
+        ,'compradetalle'
+        # ,'medioPago'
+        )
 

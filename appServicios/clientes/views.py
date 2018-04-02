@@ -5,8 +5,17 @@ from django.views.decorators.csrf import csrf_exempt
 
 from clientes.models import (Cliente, Ubicacion, MedioDePago)
 from clientes.restModels import RegistroCliente
-from clientes.serializers import (ClienteSerializer,UbicacionSerializer,UbicacionSerializerApi,MedioDePagoSerializer
-    ,RegistroUsuarioSerializer, ValidarEmailUsuarioSerializer,RegistrarInformacionBasicaSerializer)
+from clientes.serializers import (
+    ClienteSerializer,
+    UbicacionSerializer,
+    UbicacionSerializerApi,
+    MedioDePagoSerializer,
+    RegistroUsuarioSerializer, 
+    ValidarEmailUsuarioSerializer,
+    RegistrarInformacionBasicaSerializer,
+    CambiarPasswordSerializer,
+    CambiarUsuarioSerializer,
+    CambiarUsuarioValidarCodigoSerializer)
 
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.parsers import JSONParser
@@ -14,6 +23,7 @@ from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import (viewsets, permissions, mixins, generics, status)
+from rest_framework.authtoken.models import Token 
 
 
 from clientes.permissions import EsDueño
@@ -220,6 +230,8 @@ class RegistroClienteList(APIView):
             return Response(registroUsuarioSerializer.data, status=status.HTTP_201_CREATED)
         return Response(registroUsuarioSerializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+
+
 @permission_classes((permissions.AllowAny,))
 class ValidarEmailCode(APIView):
     def post(self, request,format=None):
@@ -235,14 +247,73 @@ class ValidarEmailCode(APIView):
 
         return Response(veus.errors, status= status.HTTP_400_BAD_REQUEST)
 
+@permission_classes((permissions.IsAuthenticated,))
+class CambiarPassword(APIView):
+   
+    def put(self, request,format=None):
+        
+        serializer = CambiarPasswordSerializer(data=request.data)
+        if serializer.is_valid():
+            
+            if not request.user.check_password(serializer.data.get("password")):
+                return Response({"password": ["Contraseña incorrecta."]}, status=status.HTTP_400_BAD_REQUEST)                        
+            
+            request.user.set_password(serializer.data.get("newpassword"))
+            request.user.save()
+            Token.objects.get(user=request.user).delete()
+            token = Token.objects.create(user=request.user)
+            return Response({"estado":"ok","token":token.key}, status=status.HTTP_202_ACCEPTED)
+        else:
+            return Response(serializer.errors, status= status.HTTP_400_BAD_REQUEST)      
+
 
 @permission_classes((permissions.IsAuthenticated,))
-class ModificarInformacionAdicional(APIView):
-    def put(self,request,format=None):
+class CambiarUsuarioValidarCodigo(APIView):
+    def put(self, request,format=None):
+        data=request.data
+        data['user_id'] = request.user.id
+        serializer = CambiarUsuarioValidarCodigoSerializer(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            Token.objects.get(user=request.user).delete()
+            token = Token.objects.create(user=request.user)
+            return Response({"estado":"ok","token":token.key}, status=status.HTTP_202_ACCEPTED)
+        else:
+            return Response(serializer.errors, status= status.HTTP_400_BAD_REQUEST)  
+
+
+@permission_classes((permissions.IsAuthenticated,))
+class CambiarUsuario(APIView):
+   
+    def post(self, request,format=None):
+        data=request.data
+        data['user_id']=request.user.id
+        serializer = CambiarUsuarioSerializer(data=data)
+        if serializer.is_valid():
+            if not request.user.check_password(request.data['password']):
+                return Response({"password": ["Contraseña incorrecta."]}, status=status.HTTP_400_BAD_REQUEST)                
+            else:
+                serializer.save()
+                return Response({"estado":"ok"}, status=status.HTTP_202_ACCEPTED)
+        else:
+            return Response(serializer.errors, status= status.HTTP_400_BAD_REQUEST)          
+
+
+@permission_classes((permissions.IsAuthenticated,))
+class Informacion(APIView):
+    # permission_classes = (permissions.IsAuthenticated,)
+
+    def get(self,request,format=None):
+        cliente = Cliente.objects.get(user_id=request.user.id)
+        clienteSerializer = RegistrarInformacionBasicaSerializer(cliente)
+        return Response(clienteSerializer.data,status= status.HTTP_200_OK)
+
+    def put(self,request,format=None):        
         data = request.data
-        email_usuario = request.user.email
         data["email"] = request.user.email
+        
         registrarSerializer = RegistrarInformacionBasicaSerializer(data=data)
+        
         if registrarSerializer.is_valid():
             try:
                 registrarSerializer.save()
@@ -328,9 +399,6 @@ class ClienteUbicacion(APIView):
                 return Response({"estado": "error", "msj": str(e)}, status=status.HTTP_400_BAD_REQUEST)
              
 
-
-
-    
 
 # VIEWS SETS PARA API NAVEGABLE
 

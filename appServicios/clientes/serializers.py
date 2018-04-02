@@ -52,6 +52,73 @@ class  ClienteSerializer(serializers.Serializer):
 
 ''' --------------------------------------------------------------------------------------------------------------  '''
 
+class CambiarPasswordSerializer(serializers.Serializer):
+    password = serializers.CharField(max_length=30)
+    newpassword = serializers.CharField( max_length=30)
+    repeatnewpassword = serializers.CharField( max_length=30)
+
+    def validate(self,data):
+        if(data["newpassword"]!=data["repeatnewpassword"]):
+            raise serializers.ValidationError({"newpassword":"La nueva contraseña y su confirmación no coinciden"})
+        return data
+  
+    @transaction.atomic
+    def create(self, validated_data):
+        return validated_data
+
+    def update(self, instance, validated_data):
+        return instance
+
+class CambiarUsuarioValidarCodigoSerializer(serializers.Serializer):
+    newusuario = serializers.EmailField()
+    codigo = serializers.CharField()   
+    user_id =serializers.IntegerField()
+
+    def validate_newusuario(self,newusuario):
+        if ( User.objects.filter(username=newusuario).exists()):
+            raise serializers.ValidationError({"newusuario":["Correo electronico ya esta registrado"]})
+        return newusuario
+
+    def validate(self,data):
+        if (CodeFactoryUtil.codigoValidacionEmail(data["newusuario"])!=data["codigo"]):
+            raise serializers.ValidationError({"codigo":["El codigo de validacion no corresponde"]})
+        return data
+
+    @transaction.atomic
+    def create(self, validated_data): 
+        cliente = Cliente.objects.get(user_id=validated_data["user_id"])
+        cliente.email = validated_data["newusuario"]
+        cliente.user.username =  validated_data["newusuario"]
+        cliente.user.email =  validated_data["newusuario"]
+        cliente.save()
+        cliente.user.save()
+        return validated_data  
+
+class CambiarUsuarioSerializer(serializers.Serializer):
+    newusuario = serializers.EmailField()
+    password = serializers.CharField()
+    user_id = serializers.IntegerField()
+
+    def validate_newusuario(self,newusuario):
+        if(User.objects.filter(username=newusuario).exists()):
+            raise serializers.ValidationError({"usuario":["Usuario ya registrado"]})
+        return newusuario
+
+    @transaction.atomic
+    def create(self, validated_data): 
+        usuario = User.objects.get(id=validated_data['user_id'])
+        email = validated_data['newusuario']
+        EmailFactory.getInstance(
+        email_type=EMAIL_TYPE.VALIDACION_REGISTRO_CLIENTE,
+        to= email,
+        nombreCliente=usuario.first_name+''+usuario.last_name,
+        codigoValidacion=CodeFactoryUtil.codigoValidacionEmail(email)).send()
+        return validated_data
+
+    def update(self, instance, validated_data):
+        return instance     
+
+
 class RegistroUsuarioSerializer(serializers.Serializer):
     email = serializers.EmailField()
     passw = serializers.CharField(max_length=30)
@@ -143,9 +210,10 @@ class RegistrarInformacionBasicaSerializer(serializers.Serializer):
     nombres = serializers.CharField(max_length=80,allow_null=True)
     primerApellido = serializers.CharField(max_length=80,allow_null=True)
     segundoApellido = serializers.CharField(max_length=80,allow_null=True)
-    telefonoContacto = serializers.CharField(max_length=80,allow_null=True)
+    telefono = serializers.CharField(max_length=80,allow_null=True)
     fechaNacimiento = serializers.DateField(allow_null=True)
     sexo = serializers.PrimaryKeyRelatedField(queryset=Sexo.objects.all())
+
     def validate_tipoDocumento(self,tipo):
 
         TIPO_DOCUMENTOS_KEYS = [tipo[0] for tipo in TIPO_DOCUMENTO_CHOICES]
@@ -172,14 +240,16 @@ class RegistrarInformacionBasicaSerializer(serializers.Serializer):
         if(not Validators.menor_que_fecha_actual(fechaNacimiento)):
             raise serializers.ValidationError(detail="La fecha de Nacimiento debe ser Menor que la fecha Actual")
         return fechaNacimiento
-    def validate_telefonoContacto(self,telefono):
+
+    def validate_telefono(self,telefono):
         if(not Validators.es_numero_telefonico(str(telefono))):
             raise serializers.ValidationError(detail="El número telefonico es incorrecto")
         return telefono
 
     def validate_sexo(self,sexo):
-        SEXO_KEYS = [sex[0] for sex in SEXO_CHOICES]
-        if (sexo not in SEXO_KEYS):
+        try:
+            Sexo.objects.get(sexo=sexo)
+        except:
             raise serializers.ValidationError(detail="El sexo no es valido")
         return sexo
 
@@ -192,10 +262,29 @@ class RegistrarInformacionBasicaSerializer(serializers.Serializer):
 
     @transaction.atomic
     def create(self, validated_data):
+
         try:
+            print("Creando el cliente")
             cliente = Cliente.objects.get(email=validated_data["email"])
-            cliente.activo = True
-            cliente.save()
+            cliente.nombres = validated_data["nombres"]
+            cliente.primerApellido = validated_data["primerApellido"]
+            cliente.segundoApellido = validated_data["segundoApellido"]
+            cliente.tipoDocumento = validated_data["tipoDocumento"]
+            cliente.numeroDocumento = validated_data["numeroDocumento"]
+            cliente.fechaNacimiento = validated_data["fechaNacimiento"]
+            cliente.sexo = validated_data["sexo"]
+            cliente.telefono = validated_data["telefono"]
+            cliente.user.first_name = validated_data["nombres"]
+            cliente.user.last_name = validated_data["primerApellido"]+" "+validated_data["segundoApellido"]
+   
+            try:
+                cliente.save()
+                cliente.user.save()
+            except:
+                print("Unexpected error:", sys.exc_info()[0])
+                return sys.exc_info()[0]
+
+            
         except Cliente.DoesNotExist:
             print("No existe el cliente")
             return None
@@ -203,6 +292,14 @@ class RegistrarInformacionBasicaSerializer(serializers.Serializer):
 
     def update(self,element, validated_data):
         return validated_data
+
+
+# class ClienteInfobasicaSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = Cliente
+#         fields = ('id','nombres','primerApellido','segundoApellido'
+#                   ,'tipoDocumento','numeroDocumento','telefono','email'
+#                   ,'fechaNacimiento')
 
 ''' --------------------------------------------------------------------------------------------------------------  '''
 #SERIALIZER PARA API NAVEGABLE
@@ -219,7 +316,6 @@ class ClienteSerializer(serializers.HyperlinkedModelSerializer):
 class UbicacionSerializerApi(serializers.ModelSerializer):
     class Meta:
         model = Ubicacion
-
         fields = ('id', 'cliente', 'titulo', 'direccion', 'latitud', 'longitud', 'imgPath','complemento')
 
 

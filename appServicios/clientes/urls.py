@@ -2,6 +2,7 @@ from django.conf.urls import url
 from rest_framework.urlpatterns import format_suffix_patterns
 from django.urls import path
 from clientes import views
+from payU import views  as viewsPayU
 
 urlpatterns = [
  #   path('clientes/', views.cliente_lista),
@@ -16,11 +17,16 @@ urlpatterns = [
  #  path('clientes/<int:pk>/', views.ClienteGenericsDetalle.as_view()),
     path('registro/', views.RegistroClienteList.as_view()),
     path('validarEmail/', views.ValidarEmailCode.as_view()),
-    path('modificarInformacionAdicional/', views.ModificarInformacionAdicional.as_view()),
+    path('Informacion/', views.Informacion.as_view()),
+    path('Informacion/<int:id>/', views.Informacion.as_view()),
     path('Ubicaciones/', views.ClienteUbicaciones.as_view()),
-    path('Ubicaciones/<int:id>/', views.ClienteUbicacion.as_view())
-
-    
+    path('Ubicaciones/<int:id>/', views.ClienteUbicacion.as_view()),
+    path('CambiarPassword/', views.CambiarPassword.as_view()),
+    path('CambiarUsuario/', views.CambiarUsuario.as_view()),
+    path('CambiarUsuarioValidarCodigo/', views.CambiarUsuarioValidarCodigo.as_view()),
+    path('TarjetaCredito/', viewsPayU.TarjetaCredito.as_view()),
+    path('TarjetaCredito/<id>/', viewsPayU.TarjetaCredito.as_view()),
+    path('Pay/',viewsPayU.Pay.as_view()),
 ]
 
 urlpatterns = format_suffix_patterns(urlpatterns)

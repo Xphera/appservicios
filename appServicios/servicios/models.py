@@ -34,21 +34,42 @@ class Paquete(models.Model):
     cantidadDeSesiones = models.IntegerField()
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
+    valor = models.FloatField()
 
     def __str__(self):
         return self.nombre
 
 
 class Compra(models.Model):
-    cliente  = models.ForeignKey(to='clientes.Cliente',related_name="clientes", on_delete=models.PROTECT)
-    paquete  = models.ForeignKey(to='Paquete',related_name="paquetes", on_delete=models.PROTECT)
-    medioPago = models.ForeignKey(to="clientes.MedioDePago",on_delete=models.PROTECT)
-    valor    = models.IntegerField()
+    cliente  = models.ForeignKey(to='clientes.Cliente',related_name="clientes", on_delete=models.PROTECT)    
+    medioPago = models.ForeignKey(to="parametrizacion.TipoMedioPago",on_delete=models.PROTECT)
+    valor    = models.FloatField()
+    estado  = models.ForeignKey(to="parametrizacion.EstadoCompra",on_delete=models.PROTECT)
     created  = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
 
+    # def __str__(self):
+    #     return (self.cliente.id+'-'+self.cliente+') $['+str(self.valor)+']'
+    
+class CompraDetalle(models.Model):
+    compra  = models.ForeignKey(to='Compra', related_name='compradetalle', on_delete=models.PROTECT) 
+    estado = models.ForeignKey(to="parametrizacion.EstadoCompraDetalle",related_name='estadoCompraDetalle',on_delete=models.PROTECT)
+    cantidadDeSesiones = models.IntegerField()
+    nombre = models.CharField(max_length=20, null=False)
+    detalle = models.CharField(max_length=150, null=False)
+    prestador = models.ForeignKey(to='prestadores.Prestador', on_delete=models.PROTECT)
+    valor    = models.FloatField()
+    paquete = models.ForeignKey(to='Paquete',related_name="paquete", on_delete=models.PROTECT)    
+    sesionEjecutada    = models.IntegerField(default=0)
+
+    created  = models.DateTimeField(auto_now_add=True)
+    modified = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name_plural = "CompraDetalles"
+
     def __str__(self):
-        return '('+self.cliente.numeroDocumento+'-'+self.paquete.nombre+') $['+str(self.valor)+']'
+        return ' - ('+self.compra.cliente.numeroDocumento+'-'+self.nombre+') $['+str(self.valor)+']'
 
 
 class Opinion(models.Model):
@@ -60,3 +81,6 @@ class Opinion(models.Model):
 
     def __str__(self):
         return str({"cliente":self.cliente,"servicio":self.servicio,"prestador":self.prestador})
+
+
+        

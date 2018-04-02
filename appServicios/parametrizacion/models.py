@@ -23,7 +23,7 @@ class Municipio(models.Model):
 
 
 class EstadoSesion(models.Model):
-    estado = models.CharField(max_length=10, unique=True)
+    estado = models.CharField(max_length=15, unique=True)
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
     def __str__(self):
@@ -60,3 +60,18 @@ class TipoMedioPago(models.Model):
     modified = models.DateTimeField(auto_now=True)
     def __str__(self):
         return self.medioPago
+
+
+class EstadoCompra(models.Model):
+    estado = models.CharField(max_length=15, unique=True)
+    created = models.DateTimeField(auto_now_add=True)
+    modified = models.DateTimeField(auto_now=True)
+    def __str__(self):
+        return self.estado
+
+class EstadoCompraDetalle(models.Model):
+    estado = models.CharField(max_length=15, unique=True)
+    created = models.DateTimeField(auto_now_add=True)
+    modified = models.DateTimeField(auto_now=True)
+    def __str__(self):
+        return self.estado

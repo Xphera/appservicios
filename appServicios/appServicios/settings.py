@@ -37,7 +37,8 @@ PROJECT_APPS = [
     'servicios',
     'api',
     'parametrizacion',
-    'utils'
+    'utils',
+    'payU'
 ]
 
 REST_FRAMEWORK_APP = ['rest_framework','rest_framework.authtoken','corsheaders','rest_framework_swagger']
@@ -69,7 +70,10 @@ ROOT_URLCONF = 'appServicios.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': ["C:\\appServicios\project\\appServicios\\utils\\Utils\\templatesMails\\","C:\\appServicios\project\\appServicios\\templates\\"],
+        'DIRS': [
+            "H:\\appServicios\\appServicios\\utils\\Utils\\templatesMails\\",
+            "H:\\appServicios\\appServicios\\templates\\"
+        ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
