@@ -27,6 +27,7 @@ urlpatterns = [
     path('TarjetaCredito/', viewsPayU.TarjetaCredito.as_view()),
     path('TarjetaCredito/<id>/', viewsPayU.TarjetaCredito.as_view()),
     path('Pay/',viewsPayU.Pay.as_view()),
+    path('TarjetaCreditoPricipal/',viewsPayU.TarjetaCreditoPricipal.as_view()),
 ]
 
 urlpatterns = format_suffix_patterns(urlpatterns)

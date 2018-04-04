@@ -2,8 +2,6 @@ from django.db import models
 from clientes.models import Cliente
 
 # Create your models here.
-# class Tarjetas(Model.models):
-
 
 class TarjetaDeCredito(models.Model):
     creditCardTokenId = models.UUIDField(primary_key=True, editable=False)
@@ -15,9 +13,10 @@ class TarjetaDeCredito(models.Model):
     expirationDate = models.DateField(blank=True, null=True)
     creationDate = models.CharField(max_length=50,blank=True, null=True)
     maskedNumber = models.CharField(max_length=50,blank=True, null=True)
+    principal = models.BooleanField(default=False)
 
-    created = models.DateTimeField(auto_now=True)
-    # created = models.DateTimeField(auto_now_add=True)
+    # created = models.DateTimeField(auto_now=True)
+    created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
 
     def __str__(self):

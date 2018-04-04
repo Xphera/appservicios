@@ -12,7 +12,8 @@ from payU.serializers import (
     CreateTokenSerializer,
     EliminarTokenSerializer,
     TokenSerializer,
-    PaySerializer
+    PaySerializer,
+    TokenPrincipalSerializer
 )
 
 
@@ -21,10 +22,26 @@ from payU.serializers import (
 # Create your views here.
 
 @permission_classes((permissions.IsAuthenticated,))
+
+class TarjetaCreditoPricipal(APIView):
+    def post(self, request,format=None):
+        data=request.data
+        data['userId'] = request.user.id
+        serializer = TokenPrincipalSerializer(data=data)
+        
+        if serializer.is_valid():
+            serializer.save()
+            return Response({"estado":"ok"}, status=status.HTTP_202_ACCEPTED)
+
+        else:
+            return Response(serializer.errors, status= status.HTTP_400_BAD_REQUEST)      
+
+
+@permission_classes((permissions.IsAuthenticated,))
 class TarjetaCredito(APIView):
 
     def get(self,request,format=None):
-        td = TarjetaDeCredito.objects.filter(payerId__user = request.user)
+        td = TarjetaDeCredito.objects.filter(payerId__user = request.user).order_by('-principal')
         serializer = TokenSerializer(td, many=True)      
         return Response(serializer.data)
 

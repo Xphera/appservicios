@@ -7,11 +7,43 @@ from servicios.models import (Paquete,Compra,CompraDetalle)
 from parametrizacion.models import (TipoMedioPago,EstadoCompra,EstadoCompraDetalle)
 import uuid
 
+class TokenPrincipalSerializer(serializers.Serializer):
+    creditCardTokenId = serializers.UUIDField()
+    userId = serializers.IntegerField()
+
+    @transaction.atomic
+    def create(self, validated_data):
+        try:
+            tc = TarjetaDeCredito.objects.get(payerId__user__id = validated_data['userId'], creditCardTokenId=validated_data['creditCardTokenId'])
+            if(tc.principal): 
+                return validated_data
+        except TarjetaDeCredito.DoesNotExist:
+                raise serializers.ValidationError({"creditCardTokenId":"no existe tarjeta de crédito"})
+
+        #desmarcar si existe principal        
+        try: 
+            tcs = TarjetaDeCredito.objects.get(payerId__user__id = validated_data['userId'],principal=True)
+            tcs.principal = 0
+            tcs.save()
+        except Exception as e:
+            print('sin principal')
+
+        try:          
+            tc.principal = 1
+            tc.save()
+            return validated_data
+        except Exception as e:
+            raise serializers.ValidationError({"error":"error"})  
+
+    def update(self, instance, validated_data):
+       return validated_data
+
  
 class TokenSerializer(serializers.Serializer):
     creditCardTokenId = serializers.UUIDField()
     maskedNumber = serializers.CharField()
     paymentMethod = serializers.CharField()
+    principal= serializers.BooleanField()
 
 
 class CreateTokenSerializer(serializers.Serializer):
@@ -21,6 +53,7 @@ class CreateTokenSerializer(serializers.Serializer):
     paymentMethod = serializers.CharField()
     cardNumber = serializers.IntegerField()
     expirationDate = serializers.DateField(input_formats=['%Y/%m'])
+    pricipal= serializers.BooleanField(default=False)
   
     @transaction.atomic
     def create(self, validated_data):
@@ -36,10 +69,17 @@ class CreateTokenSerializer(serializers.Serializer):
                                         validated_data['expirationDate'].strftime("%Y/%m"))
 
         if(respuesta.get('code') == 'SUCCESS'):
-            info = respuesta.get('creditCardToken')
 
-            td = TarjetaDeCredito()
-            td.creditCardTokenId = info['creditCardTokenId']
+            #todo: 1) consultar si existe, y actualizar si si
+            info = respuesta.get('creditCardToken')
+            td = None
+            try:
+                td = TarjetaDeCredito.objects.get(pk = info['creditCardTokenId'])
+                td.delete = False
+            except Exception as e:
+                td = TarjetaDeCredito()
+                td.creditCardTokenId = info['creditCardTokenId']
+
             td.name = info['name']
             td.payerId = cliente
             td.identificationNumber = info['identificationNumber']
@@ -48,6 +88,7 @@ class CreateTokenSerializer(serializers.Serializer):
             td.expirationDate = info['expirationDate']
             td.creationDate = info['creationDate']
             td.maskedNumber = info['maskedNumber']
+            
             td.save()
         else:
            raise serializers.ValidationError({"error":respuesta.get('error')})
@@ -100,13 +141,21 @@ class PaySerializer(serializers.Serializer):
             cliente = Cliente.objects.get(user_id=validated_data["user_id"])
             tc =TarjetaDeCredito.objects.get(creditCardTokenId=validated_data['tokenId'], payerId__user__id = validated_data["user_id"])
             pq = Paquete.objects.get( id =  validated_data['paqueteId'] ) 
-
+            tipoMedioPago = TipoMedioPago.objects.get(id=1)
+            estadoCompra = EstadoCompra.objects.get(id=1)
+            estadoCompraDetalle =  EstadoCompraDetalle.objects.get(id=1)
         except Cliente.DoesNotExist:
             raise serializers.ValidationError({"error":"no existe cliente"})
         except TarjetaDeCredito.DoesNotExist:
             raise serializers.ValidationError({"error":"no existe tarjeta de crédito"})
         except Paquete.DoesNotExist:
             raise serializers.ValidationError({"error":"no existe paquete a comprar"})
+        except TipoMedioPago.DoesNotExist:
+            raise serializers.ValidationError({"error":"no existe medio de pago"})
+        except EstadoCompra.DoesNotExist:
+            raise serializers.ValidationError({"error":"no existe estado de compra"})
+        except EstadoCompraDetalle.DoesNotExist:
+            raise serializers.ValidationError({"error":"no existe estado de detalle compra"})
 
         ctd = CobroTarjetaDeCredito()
         ctd.cliente =  cliente
@@ -145,8 +194,8 @@ class PaySerializer(serializers.Serializer):
                 compra = Compra()
                 compra.cliente = ctd.cliente
                 compra.valor = ctd.value
-                compra.medioPago = TipoMedioPago.objects.get(id=1)
-                compra.estado = EstadoCompra.objects.get(id=1)
+                compra.medioPago = tipoMedioPago
+                compra.estado = estadoCompra
                 compra.save()
 
                 ctd.compra = compra
@@ -154,7 +203,7 @@ class PaySerializer(serializers.Serializer):
                 #crear paquete comprado.
                 compraDt = CompraDetalle()
                 compraDt.compra = compra
-                compraDt.estado = EstadoCompraDetalle.objects.get(id=1)
+                compraDt.estado = estadoCompraDetalle
                 compraDt.cantidadDeSesiones = pq.cantidadDeSesiones
                 compraDt.detalle = pq.detalle
                 compraDt.nombre = pq.nombre
