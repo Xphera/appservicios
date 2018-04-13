@@ -21,12 +21,17 @@ router.register('categorias', CategoriaViewSet, 'categoria')
 router.register('servicios', ServicioViewSet, 'servicio')
 router.register('paquetes', PaqueteViewSet, 'paquete')
 router.register('compras', CompraViewSet, 'compra')
-router.register('compradetalle', CompraDetalleViewSet, 'compradetalle')
+router.register('CalificarSesion', CalificarSesionViewSet, 'compradetalle')
+router.register('PaqueteActivo', PaqueteActivoViewSet,'PaqueteActivo')
+router.register('ProximaSesion', ProximaSesionViewSet,'ProximaSesion')
 
 
 urlpatterns = [
     path('base/',include(router.urls)),
-    path('compradetalle/', CompraDetalleViewSet.as_view()),
+    path('CalificarSesion/', CalificarSesionViewSet.as_view()),
+    path('PaqueteActivo/', PaqueteActivoViewSet.as_view()),
+    path('ProximaSesion/', ProximaSesionViewSet.as_view()),
+    
 ]
 
 #urlpatterns = format_suffix_patterns(urlpatterns)

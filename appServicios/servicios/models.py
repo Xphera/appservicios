@@ -59,8 +59,11 @@ class CompraDetalle(models.Model):
     detalle = models.CharField(max_length=150, null=False)
     prestador = models.ForeignKey(to='prestadores.Prestador', on_delete=models.PROTECT)
     valor    = models.FloatField()
-    paquete = models.ForeignKey(to='Paquete',related_name="paquete", on_delete=models.PROTECT)    
-    sesionEjecutada    = models.IntegerField(default=0)
+    paquete = models.ForeignKey(to='Paquete',related_name="paquete", on_delete=models.PROTECT) 
+
+    sesionFinalizadas    = models.IntegerField(blank=True,null=True,default=0)
+    sesionAgendadas    = models.IntegerField(blank=True,null=True,default=0)
+    sesionPorAgendadar    = models.IntegerField(blank=True,null=True,default=0)
 
     created  = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
@@ -70,6 +73,29 @@ class CompraDetalle(models.Model):
 
     def __str__(self):
         return ' - ('+self.compra.cliente.numeroDocumento+'-'+self.nombre+') $['+str(self.valor)+']'
+
+
+class CompraDetalleSesion(models.Model):
+    compraDetalle  = models.ForeignKey(to='CompraDetalle', related_name='compradetallesesiones', on_delete=models.PROTECT)
+    estado = models.ForeignKey(to="parametrizacion.EstadoCompraDetalleSesion",related_name='estadoCompraDetalleSesiones',on_delete=models.PROTECT)
+    calificacion = models.FloatField(default=0,null=True)
+    comentario = models.CharField(blank=True,max_length=280,null=True)
+    titulo = models.CharField(max_length=30,blank=True,null=True)
+    direccion = models.CharField(max_length=50,blank=True,null=True)
+    latitud = models.DecimalField(decimal_places=16, max_digits=21,blank=True,null=True)
+    longitud = models.DecimalField(decimal_places=16, max_digits=21,blank=True,null=True)
+    complemento = models.CharField(blank=True,max_length=50,null=True)
+    fechaInicio = models.DateTimeField(null=True)
+    fechaFin = models.DateTimeField(null=True)
+
+    created  = models.DateTimeField(auto_now_add=True)
+    modified = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name_plural = "CompraDetallesSesiones"
+
+        # def __str__(self):
+        #     return ' - ('+self.compra.cliente.numeroDocumento+'-'+self.nombre+') $['+str(self.valor)+']'    
 
 
 class Opinion(models.Model):

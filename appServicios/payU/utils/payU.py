@@ -66,6 +66,9 @@ class PayU(object):
         payu_url = self.payments_url
         if api_type == REPORTS:
             payu_url = self.reports_url
+
+        print(payu_url)
+        print ('REQUEST: %s' % payload)    
     
         response = requests.post(
             payu_url,

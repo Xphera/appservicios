@@ -25,7 +25,7 @@ from parametrizacion.views import (DepartamentoViewSet, MunicipioViewSet, SexoVi
 from rest_framework.routers import DefaultRouter
 from rest_framework.authtoken import views as authTokenViews
 from rest_framework_swagger.views import get_swagger_view
-from servicios.views import (CategoriaViewSet,ServicioViewSet,PaqueteViewSet,CompraViewSet,CompraDetalleViewSet)
+from servicios.views import (CategoriaViewSet,ServicioViewSet,PaqueteViewSet,CompraViewSet)
 
 router = DefaultRouter()
 
@@ -37,7 +37,6 @@ router.register(prefix='categorias',    viewset=CategoriaViewSet,       base_nam
 router.register(prefix='servicios',     viewset=ServicioViewSet,        base_name='servicio')
 router.register(prefix='paquetes',      viewset=PaqueteViewSet,         base_name='paquete')
 router.register(prefix='compras',       viewset=CompraViewSet,          base_name='compra')
-router.register(prefix='compradetalle',       viewset=CompraDetalleViewSet,          base_name='compradetalle')
 
 #CLIENTES ---------------------------------------------------------------------------------------------------
 router.register(prefix='clientes',      viewset=ClienteViewSet,         base_name='cliente')
