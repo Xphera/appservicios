@@ -37,3 +37,9 @@ class Prestador(models.Model):
 
     def __str__(self):
         return str({"nombre":self.nombres+" "+self.primerApellido+" "+self.segundoApellido,"documento":self.numeroDocumento})
+
+class Disponibilidad(models.Model):
+    dia = models.IntegerField()
+    hora = models.IntegerField()
+    disponibilidad = models.BooleanField()
+    prestador = models.ForeignKey(to=Prestador, on_delete=models.PROTECT)

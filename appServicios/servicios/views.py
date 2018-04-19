@@ -3,6 +3,11 @@ from rest_framework import (viewsets, permissions,status)
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.views import APIView
 from rest_framework.response import Response
+import dateparser
+from datetime import datetime, date
+from django.utils import timezone
+
+from parametrizacion.models import (EstadoCompraDetalleSesion)
 
 # Create your views here.
 from servicios.models import (
@@ -73,19 +78,45 @@ class ProximaSesionViewSet(APIView):
             serializer = CompraDetalleSesioneSerializer(qs,many=False)
             return Response(serializer.data)
         else:
-            return Response({})
-           
-
-        
+            return Response({}) 
 
 @permission_classes((permissions.IsAuthenticated,))
 class PaqueteActivoViewSet(APIView):
-
+    
     def get(self,request,format=None):
         #todo: contenplar la posiblidad que haya mas de un paquete activo
         try:
             qs = CompraDetalle.objects.get(compra__cliente__user = request.user,estado=1)
+            
             serializer = CompraDetalleSerializer(qs)
             return Response(serializer.data)
         except Exception as e:
+             print (e)
              return Response({})
+
+@permission_classes((permissions.IsAuthenticated,))
+class ProgramarSesionViewSet(APIView):
+     def post(self,request,format=None):
+        try:
+            estado = EstadoCompraDetalleSesion.objects.get(pk=2)
+            cds = CompraDetalleSesion.objects.get(pk=request.data["sesionId"])
+            cds.titulo = request.data["titulo"]
+            cds.complemento = request.data["complemento"]
+            cds.direccion = request.data["direccion"]
+            cds.latitud = request.data["latitud"]
+            cds.longitud = request.data["longitud"]
+            cds.fechaInicio = request.data["fecha"]# dateparser.parse(request.data["fecha"]) 
+            cds.estado=estado
+            
+            cds.compraDetalle.sesionAgendadas = cds.compraDetalle.sesionAgendadas+1
+            cds.compraDetalle.sesionPorAgendadar = cds.compraDetalle.sesionPorAgendadar-1
+            cds.compraDetalle.save()
+            cds.save()
+            print(cds.fechaInicio,timezone.now())
+            return Response({"estado":"ok"})
+        except Exception as e:
+            print(e)
+            return Response({"error":"error"})
+
+
+

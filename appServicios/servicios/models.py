@@ -35,6 +35,7 @@ class Paquete(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
     valor = models.FloatField()
+    duracionSesion = models.IntegerField()
 
     def __str__(self):
         return self.nombre
@@ -64,6 +65,7 @@ class CompraDetalle(models.Model):
     sesionFinalizadas    = models.IntegerField(blank=True,null=True,default=0)
     sesionAgendadas    = models.IntegerField(blank=True,null=True,default=0)
     sesionPorAgendadar    = models.IntegerField(blank=True,null=True,default=0)
+    duracionSesion = models.IntegerField()
 
     created  = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
@@ -93,6 +95,7 @@ class CompraDetalleSesion(models.Model):
 
     class Meta:
         verbose_name_plural = "CompraDetallesSesiones"
+        ordering = ('fechaInicio',)
 
         # def __str__(self):
         #     return ' - ('+self.compra.cliente.numeroDocumento+'-'+self.nombre+') $['+str(self.valor)+']'    

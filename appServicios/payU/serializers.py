@@ -132,7 +132,18 @@ class PaySerializer(serializers.Serializer):
     tokenId = serializers.UUIDField()
     cuotas = serializers.IntegerField()
     paqueteId = serializers.IntegerField()
-    user_id = serializers.IntegerField()   
+    user_id = serializers.IntegerField()
+
+    def validate_cuotas(self,cuotas):
+        if(cuotas < 1 or cuotas > 12):
+          raise serializers.ValidationError("Número de cuotas no valido.")
+        return cuotas  
+
+    def validate(self,data):
+        cd = CompraDetalle.objects.filter(compra__cliente__user_id=data["user_id"],estado_id=1)
+        if(cd.count()>0):
+            raise serializers.ValidationError({"Paquete":"el usuario cuenta con un paquete activo."})
+        return data
     
     @transaction.atomic
     def create(self, validated_data):
@@ -163,116 +174,132 @@ class PaySerializer(serializers.Serializer):
                 raise serializers.ValidationError({"error":"no existe estado de detalle compra sesión"})
 
 
-            compra = Compra()
-            compra.cliente = cliente
-            compra.valor = pq.valor
-            compra.medioPago = tipoMedioPago
-            compra.estado = estadoCompra
-            compra.save()
+            # compra = Compra()
+            # compra.cliente = cliente
+            # compra.valor = pq.valor
+            # compra.medioPago = tipoMedioPago
+            # compra.estado = estadoCompra
+            # compra.save()
 
-            #crear paquete comprado.
-            compraDt = CompraDetalle()
-            compraDt.compra = compra
-            compraDt.estado = estadoCompraDetalle
-            compraDt.cantidadDeSesiones = pq.cantidadDeSesiones
-            compraDt.detalle = pq.detalle
-            compraDt.nombre = pq.nombre
-            compraDt.prestador = pq.prestador
-            compraDt.paquete = pq
-            compraDt.valor = pq.valor
-            compraDt.save()
+            # #TODO: VALIDAR FUNCIONAMIENTO DE MODIFICACION DE DURACION DE SESION
+            # #crear paquete comprado.
+            # compraDt = CompraDetalle()
+            # compraDt.compra = compra
+            # compraDt.estado = estadoCompraDetalle
+            # compraDt.cantidadDeSesiones = pq.cantidadDeSesiones
+            # compraDt.detalle = pq.detalle
+            # compraDt.nombre = pq.nombre
+            # compraDt.prestador = pq.prestador
+            # compraDt.paquete = pq
+            # compraDt.valor = pq.valor
+            # compraDt.duracionSesion = pq.duracionSesion            
+            # compraDt.save()
 
-            #compra detalle sesion
+            # #compra detalle sesion
             
-            bulkCompraDetalleSesion = []
-            for i in range(0,compraDt.cantidadDeSesiones):
-                cds = CompraDetalleSesion()
-                cds.compraDetalle = compraDt
-                cds.estado = estadoCompraDetalleSesion
-                bulkCompraDetalleSesion.append(cds)
-            CompraDetalleSesion.objects.bulk_create(bulkCompraDetalleSesion)
+            # bulkCompraDetalleSesion = []
+            # for i in range(0,compraDt.cantidadDeSesiones):
+            #     cds = CompraDetalleSesion()
+            #     cds.compraDetalle = compraDt
+            #     cds.estado = estadoCompraDetalleSesion
+            #     bulkCompraDetalleSesion.append(cds)
+            # CompraDetalleSesion.objects.bulk_create(bulkCompraDetalleSesion)
             
                         
-            output['error'] = False
-            output['compra'] = compra.id
-            output['detalleCompra'] = compraDt.id
-            return output
+            # output['error'] = False
+            # output['compra'] = compra.id
+            # output['detalleCompra'] = compraDt.id
+            # return output
 
-    #         ctd = CobroTarjetaDeCredito()
-    #         ctd.cliente =  cliente
-    #         ctd.creditCardToken = tc
-    #         ctd.description = pq.nombre+" "+pq.detalle
-    #         ctd.notifyUrl = "http://localhost"
-    #         ctd.value = pq.valor
-    #         ctd.cuotas = validated_data['cuotas'] 
-    #         ctd.referenceCode = uuid.uuid1()
-    #         ctd.save()
-    #         try:
-    #         respuesta =  payu.submit_transaction(
-    #                                         str(ctd.creditCardToken.creditCardTokenId),
-    #                                         str(ctd.referenceCode), # validated_data['referenceCode'],
-    #                                         ctd.description, # validated_data['description'],
-    #                                         ctd.notifyUrl, # validated_data['notifyUrl'],
-    #                                         ctd.value, # validated_data['value'],
-    #                                         ctd.cliente.email, # validated_data['email'],                                        
-    #                                         ctd.creditCardToken.paymentMethod ,# validated_data['paymentMethod'],   
-    #                                         ctd.cuotas # validated_data['cuotas']                                     
-    #                                     ) 
-    #         except Exception as e:
-    #           raise serializers.ValidationError({"error":"Error conectar pasarela de pago"})
+            ctd = CobroTarjetaDeCredito()
+            ctd.cliente =  cliente
+            ctd.creditCardToken = tc
+            ctd.description = pq.nombre+" "+pq.detalle
+            ctd.notifyUrl = "http://localhost"
+            ctd.value = pq.valor
+            ctd.cuotas = validated_data['cuotas'] 
+            ctd.referenceCode = uuid.uuid1()
+            ctd.save()
+            try:
+                respuesta =  payu.submit_transaction(
+                                            str(ctd.creditCardToken.creditCardTokenId),
+                                            str(ctd.referenceCode), # validated_data['referenceCode'],
+                                            ctd.description, # validated_data['description'],
+                                            ctd.notifyUrl, # validated_data['notifyUrl'],
+                                            ctd.value, # validated_data['value'],
+                                            ctd.cliente.email, # validated_data['email'],                                        
+                                            ctd.creditCardToken.paymentMethod ,# validated_data['paymentMethod'],   
+                                            ctd.cuotas # validated_data['cuotas']                                     
+                                        ) 
+            except Exception as e:
+              raise serializers.ValidationError({"error":"Error conectar pasarela de pago"})
 
-    #         ctd.code = respuesta.get('code')
-    #         ctd.trnsancion = respuesta        
-    #         ctd.save()
-    # # crear compras si estado de transacion es APPROVED
-    #         if(ctd.code ==  "SUCCESS"):
+            ctd.code = respuesta.get('code')
+            ctd.trnsancion = respuesta        
+            ctd.save()
+            # crear compras si estado de transacion es APPROVED
+            if(ctd.code ==  "SUCCESS"):
 
-    #             transactionResponse = respuesta.get('transactionResponse')            
-    #             ctd.orderId = transactionResponse['orderId']
-    #             ctd.state = transactionResponse['state']
-    #             ctd.responseCode = transactionResponse['responseCode']
-    #             ctd.save()
-    #             if(ctd.state ==  "APPROVED"):
-    #                 compra = Compra()
-    #                 compra.cliente = ctd.cliente
-    #                 compra.valor = ctd.value
-    #                 compra.medioPago = tipoMedioPago
-    #                 compra.estado = estadoCompra
-    #                 compra.save()
+                transactionResponse = respuesta.get('transactionResponse')            
+                ctd.orderId = transactionResponse['orderId']
+                ctd.state = transactionResponse['state']
+                ctd.responseCode = transactionResponse['responseCode']
+                ctd.save()
+                if(ctd.state ==  "APPROVED"):
+                    compra = Compra()
+                    compra.cliente = ctd.cliente
+                    compra.valor = ctd.value
+                    compra.medioPago = tipoMedioPago
+                    compra.estado = estadoCompra
+                    compra.save()
 
-    #                 ctd.compra = compra
-    #                 ctd.save()
-    #                     #crear paquete comprado.
-    #                 compraDt = CompraDetalle()
-    #                 compraDt.compra = compra
-    #                 compraDt.estado = estadoCompraDetalle
-    #                 compraDt.cantidadDeSesiones = pq.cantidadDeSesiones
-    #                 compraDt.detalle = pq.detalle
-    #                 compraDt.nombre = pq.nombre
-    #                 compraDt.prestador = pq.prestador
-    #                 compraDt.paquete = pq
-    #                 compraDt.valor = pq.valor
-    #                 compraDt.save()
+                    ctd.compra = compra
+                    ctd.save()
+                    
+                    # #TODO: VALIDAR FUNCIONAMIENTO DE MODIFICACION DE DURACION DE SESION
+                    #crear paquete comprado.
+                    compraDt = CompraDetalle()
+                    compraDt.compra = compra
+                    compraDt.estado = estadoCompraDetalle
+                    compraDt.cantidadDeSesiones = pq.cantidadDeSesiones
+                    compraDt.detalle = pq.detalle
+                    compraDt.nombre = pq.nombre
+                    compraDt.prestador = pq.prestador
+                    compraDt.paquete = pq
+                    compraDt.valor = pq.valor
+                    compraDt.duracionSesion = pq.duracionSesion
+                    compraDt.sesionPorAgendadar = pq.cantidadDeSesiones
+                    compraDt.save()
+
+                    #compra detalle sesion
+                    bulkCompraDetalleSesion = []
+                    for i in range(0,compraDt.cantidadDeSesiones):
+                        cds = CompraDetalleSesion()
+                        cds.compraDetalle = compraDt
+                        cds.estado = estadoCompraDetalleSesion
+                        bulkCompraDetalleSesion.append(cds)
+                    CompraDetalleSesion.objects.bulk_create(bulkCompraDetalleSesion)
+            
+                                            
+                    output['error'] = False
+                    output['compra'] = compra.id
+                    output['detalleCompra'] = compraDt.id
+                else:
+
+                    try:
+                        codigo = CodigoRespuetaPayu.objects.get(codigo=ctd.responseCode)
+                        output["error"] = True
+                        output["descripcion"] = codigo.descripcion
                         
-    #                 output['error'] = False
-    #                 output['compra'] = compra.id
-    #                 output['detalleCompra'] = compraDt.id
-    #             else:
-
-    #                 try:
-    #                     codigo = CodigoRespuetaPayu.objects.get(codigo=ctd.responseCode)
-    #                     output["error"] = True
-    #                     output["descripcion"] = codigo.descripcion
-                        
-    #                 except CodigoRespuetaPayu.DoesNotExist:
-    #                     output["error"] = True
-    #                     output["descripcion"] = "Error desconocido."           
-    #         else:
+                    except CodigoRespuetaPayu.DoesNotExist:
+                        output["error"] = True
+                        output["descripcion"] = "Error desconocido."           
+            else:
                 
-    #             output["error"] = True
-    #             output["descripcion"] = respuesta.get('error')        
+                output["error"] = True
+                output["descripcion"] = respuesta.get('error')        
         
-    #         return output
+            return output
 
     def update(self, instance, validated_data):
        return validated_data

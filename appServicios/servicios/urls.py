@@ -31,6 +31,7 @@ urlpatterns = [
     path('CalificarSesion/', CalificarSesionViewSet.as_view()),
     path('PaqueteActivo/', PaqueteActivoViewSet.as_view()),
     path('ProximaSesion/', ProximaSesionViewSet.as_view()),
+    path('ProgramarSesion/', ProgramarSesionViewSet.as_view()),
     
 ]
 

@@ -67,6 +67,7 @@
             "cwd": "${workspaceFolder}",
             "args": [
                 "runserver",
+                "9090",
                 "--noreload",
                 "--nothreading"
             ],

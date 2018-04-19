@@ -60,6 +60,7 @@ urlpatterns = [
     path('api-token-auth/', authTokenViews.obtain_auth_token),
     path('api/clientes/',include('clientes.urls')),
     path('api/parametricos/',include('parametrizacion.urls')),
+    path('api/prestadores/',include('prestadores.urls')),
     path('api/servicios/',include('servicios.urls')),
     path('api/nav/',include(router.urls)),
     path('api/help/',schema_view)

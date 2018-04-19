@@ -93,18 +93,18 @@ WSGI_APPLICATION = 'appServicios.wsgi.application'
 # https://docs.djangoproject.com/en/2.0/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-    },
-    #  'defaultMysql': {
-    #     'ENGINE': 'django.db.backends.mysql',
-    #     'NAME': 'appservicios',
-    #     'USER': 'root',
-    #     'PASSWORD': 'Ad5530',
-    #     'HOST': '127.0.0.1',
-    #     'PORT': '3306',
-    # }
+    # 'default': {
+    #     'ENGINE': 'django.db.backends.sqlite3',
+    #     'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+    # },
+     'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'appservicios',
+        'USER': 'root',
+        'PASSWORD': '',
+        'HOST': '127.0.0.1',
+        'PORT': '3306',
+    }
 
 }
 
@@ -131,15 +131,13 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/2.0/topics/i18n/
 
-LANGUAGE_CODE = 'es-CO'
 
-TIME_ZONE = 'America/Bogota'
-
-USE_I18N = True
-
-USE_L10N = True
 
 USE_TZ = True
+TIME_ZONE = 'America/Bogota'
+USE_I18N = True
+USE_L10N = True
+LANGUAGE_CODE = 'es-CO'
 
 
 # Static files (CSS, JavaScript, Images)
