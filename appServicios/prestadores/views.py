@@ -26,7 +26,8 @@ class DisponibilidadViewSet(APIView):
 
     def post(self, request,format=None):
         disponibilidad = Disponibilidad()
-        guardar = disponibilidad.guardar(request)
+  
+        guardar = disponibilidad.guardar(request.data["disponibilidad"])
         if(guardar==True):      
             return Response({"estado":"ok"}, status=status.HTTP_202_ACCEPTED)
         else:

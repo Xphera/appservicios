@@ -64,7 +64,7 @@ class CompraDetalle(models.Model):
 
     sesionFinalizadas    = models.IntegerField(blank=True,null=True,default=0)
     sesionAgendadas    = models.IntegerField(blank=True,null=True,default=0)
-    sesionPorAgendadar    = models.IntegerField(blank=True,null=True,default=0)
+    sesionPorAgendar    = models.IntegerField(blank=True,null=True,default=0)
     duracionSesion = models.IntegerField()
 
     created  = models.DateTimeField(auto_now_add=True)

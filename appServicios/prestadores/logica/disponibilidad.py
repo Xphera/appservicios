@@ -3,6 +3,7 @@ from servicios.models import (CompraDetalleSesion)
 import dateparser
 from datetime import datetime, date 
 import calendar
+import json
 
 class Disponibilidad(object):
     #TODO: revisar parametros de entrada en metodos
@@ -19,24 +20,24 @@ class Disponibilidad(object):
                 output[disp.dia][disp.hora] = disp.disponibilidad   
         return output
 
-    def guardar(self,request):
-        bulkCompraDisponibilidad = []
+    def guardar(self,data):
+        bulkDisponibilidad = []
         try: 
             prestador = Prestador.objects.get(pk=1)
 
-            #buscar y eliminar si prestador tiene disponibilidad registrada.
+            # #buscar y eliminar si prestador tiene disponibilidad registrada.
             Disp.objects.filter(prestador=prestador).delete()
 
-            for diaid, dia in enumerate(request.data):   
+            for diaid, dia in enumerate(data): 
                 if( diaid > 0):
-                    for horaid,disponibilidad in enumerate(dia):
-                        disp = Disponibilidad()
+                    for horaid,valor in enumerate(dia):
+                        disp = Disp()
                         disp.prestador = prestador
                         disp.dia = diaid
-                        disp.hora = horaid
-                        disp.disponibilidad = disponibilidad 
-                        bulkCompraDisponibilidad.append(disp)                    
-            Disp.objects.bulk_create(bulkCompraDisponibilidad)           
+                        disp.hora = horaid                        
+                        disp.disponibilidad = valor 
+                        bulkDisponibilidad.append(disp)             
+            Disp.objects.bulk_create(bulkDisponibilidad)
             return True
         except Exception as e:
             return e
@@ -109,7 +110,7 @@ class Disponibilidad(object):
 
         return programacion[dia]
     
-    def disponibilidadMesSegunSesion(self,año,mes,sesionID):
+    def disponibilidadMesSegunSesion(self,año,mes,sesionId):        
         año= int(año)
         mes=int(mes)        
         ultimodiames = calendar.monthrange(año,mes)[1]
@@ -117,6 +118,14 @@ class Disponibilidad(object):
         output=[]
         for dia in range(1,ultimodiames+1):
             input['fechaInicio'] = str(date(año,mes,dia))
-            input["sesionId"] = sesionID            
+            input["sesionId"] = sesionId            
             output.append({"dia":datetime(año,mes,dia),"horas":self.programacionSegunSesion(input)})
         return output
+
+    def validarDisponibilidadSegunSesion(self,fechaInicio,sesionId):
+        data = {}
+        data["fechaInicio"] = str(fechaInicio)
+        data["sesionId"] = sesionId
+        programacionSegunSesion = self.programacionSegunSesion(data)
+        return programacionSegunSesion[fechaInicio.hour]
+

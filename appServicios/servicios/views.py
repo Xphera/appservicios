@@ -4,8 +4,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.views import APIView
 from rest_framework.response import Response
 import dateparser
-from datetime import datetime, date
-from django.utils import timezone
+from datetime import datetime
 
 from parametrizacion.models import (EstadoCompraDetalleSesion)
 
@@ -24,7 +23,8 @@ from servicios.serializers import (
     CompraSerializer,
     CompraDetalleSerializer,
     CompraDetalleSesioneSerializer,
-    CalificarSesionSerializer)
+    CalificarSesionSerializer,
+    ProgramarSesionSerializer)
 
 class CategoriaViewSet(viewsets.ModelViewSet):
     queryset = Categoria.objects.all()
@@ -96,27 +96,17 @@ class PaqueteActivoViewSet(APIView):
 
 @permission_classes((permissions.IsAuthenticated,))
 class ProgramarSesionViewSet(APIView):
+
      def post(self,request,format=None):
-        try:
-            estado = EstadoCompraDetalleSesion.objects.get(pk=2)
-            cds = CompraDetalleSesion.objects.get(pk=request.data["sesionId"])
-            cds.titulo = request.data["titulo"]
-            cds.complemento = request.data["complemento"]
-            cds.direccion = request.data["direccion"]
-            cds.latitud = request.data["latitud"]
-            cds.longitud = request.data["longitud"]
-            cds.fechaInicio = request.data["fecha"]# dateparser.parse(request.data["fecha"]) 
-            cds.estado=estado
-            
-            cds.compraDetalle.sesionAgendadas = cds.compraDetalle.sesionAgendadas+1
-            cds.compraDetalle.sesionPorAgendadar = cds.compraDetalle.sesionPorAgendadar-1
-            cds.compraDetalle.save()
-            cds.save()
-            print(cds.fechaInicio,timezone.now())
+        
+        fi = dateparser.parse(request.data["fecha"]) 
+        data = request.data
+        data["fechaInicio"]=  datetime(fi.year,fi.month,fi.day,fi.hour)
+        data["userId"]= request.user.id
+        serializer= ProgramarSesionSerializer(data=data)
+
+        if serializer.is_valid():
+            serializer.save()
             return Response({"estado":"ok"})
-        except Exception as e:
-            print(e)
-            return Response({"error":"error"})
-
-
-
+        else:
+            return Response(serializer.errors, status= status.HTTP_400_BAD_REQUEST)
