@@ -46,7 +46,6 @@ router.register(prefix='mediosDePago',  viewset=MediodepagoViewSet,     base_nam
 #PARAMETRICOS -----------------------------------------------------------------------------------------------
 router.register(prefix='departamentos', viewset=DepartamentoViewSet,    base_name='departamento')
 router.register(prefix='municipios',    viewset=MunicipioViewSet,       base_name='municipio')
-router.register(prefix='sexo',          viewset=SexoViewSet,            base_name='sexo')
 
 #API---------------------------------------------------------------------------------------------------------
 router.register(prefix='users',viewset=UserViewSet,base_name='user')

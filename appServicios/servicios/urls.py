@@ -21,9 +21,9 @@ router.register('categorias', CategoriaViewSet, 'categoria')
 router.register('servicios', ServicioViewSet, 'servicio')
 router.register('paquetes', PaqueteViewSet, 'paquete')
 router.register('compras', CompraViewSet, 'compra')
-router.register('CalificarSesion', CalificarSesionViewSet, 'compradetalle')
-router.register('PaqueteActivo', PaqueteActivoViewSet,'PaqueteActivo')
-router.register('ProximaSesion', ProximaSesionViewSet,'ProximaSesion')
+# router.register('CalificarSesion', CalificarSesionViewSet, 'compradetalle')
+# router.register('PaqueteActivo', PaqueteActivoViewSet,'PaqueteActivo')
+# router.register('ProximaSesion', ProximaSesionViewSet,'ProximaSesion')
 
 
 urlpatterns = [

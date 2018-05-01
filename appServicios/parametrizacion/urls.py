@@ -22,4 +22,3 @@ urlpatterns = [
     path('sexo/', views.SexoViewSet.as_view()),
 ]
 
-urlpatterns = format_suffix_patterns(urlpatterns)

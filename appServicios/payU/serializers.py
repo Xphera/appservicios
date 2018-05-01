@@ -268,7 +268,7 @@ class PaySerializer(serializers.Serializer):
                     compraDt.paquete = pq
                     compraDt.valor = pq.valor
                     compraDt.duracionSesion = pq.duracionSesion
-                    compraDt.sesionPorAgendadar = pq.cantidadDeSesiones
+                    compraDt.sesionPorAgendar = pq.cantidadDeSesiones
                     compraDt.save()
 
                     #compra detalle sesion
