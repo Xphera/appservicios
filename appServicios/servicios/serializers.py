@@ -1,13 +1,57 @@
-from servicios.models import (Categoria, Servicio, Paquete, Compra,CompraDetalle,CompraDetalleSesion)
+from servicios.models import (Categoria, Servicio, Paquete, Compra,CompraDetalle,CompraDetalleSesion,Zona)
 from prestadores.models import (Prestador)
 from prestadores.models import (Prestador)
 # from prestadores.serializers import PrestadorSerializer
 from parametrizacion.models import (EstadoCompraDetalle,EstadoCompraDetalleSesion)
 from parametrizacion.serializers import (EstadoCompraDetalleSesionSerializer)
 from rest_framework import serializers
+from rest_framework_gis.serializers import GeoFeatureModelSerializer
 from django.db import transaction
 from prestadores.logica.disponibilidad import Disponibilidad
+import math
+import random
+from django.contrib.gis.geos import (Point,Polygon)
+from django.db.models import Q
+from dateutil.relativedelta import relativedelta
+from datetime import datetime
 
+
+
+class ZonaSerializer(GeoFeatureModelSerializer):
+    id = serializers.IntegerField(read_only=True)
+    color = serializers.CharField(read_only=True)
+    class Meta:
+        model = Zona
+        geo_field = "zona"
+        fields = ('zona','name','id','color')
+
+    @transaction.atomic
+    def create(self, validated_data):
+        r = math.floor(random.random()*256)
+        g = math.floor(random.random()*256)
+        b = math.floor(random.random()*256)
+        rgb = 'rgb(' + str(r) + ',' + str(g) + ',' + str(b) + ', 0.5)'
+        try:
+            z = Zona()
+            z.name = validated_data["name"]
+            z.zona = validated_data["zona"]
+            z.color = rgb
+
+            z.save()
+        except Exception as e:  
+            print(e)
+            raise serializers.ValidationError("Error al guardar")  
+        return validated_data
+
+    def update(self,pk, validated_data):
+        try:
+            z = Zona.objects.get(pk=pk)
+            z.name = validated_data["name"]
+            z.zona = validated_data["zona"]
+            z.save()
+        except Exception as e:
+            raise serializers.ValidationError("Error al guardar")  
+        return validated_data  
 
 
 class CategoriaSerializer(serializers.HyperlinkedModelSerializer):
@@ -35,6 +79,8 @@ class PaqueteSerializer(serializers.ModelSerializer):
                   )
 
 class PrestadorSerializer(serializers.ModelSerializer):
+    zona = ZonaSerializer(read_only=True)
+    zona_id = serializers.PrimaryKeyRelatedField(queryset=Zona.objects.all(), write_only=True, source='zonas')
     class Meta:
         model = Prestador
         fields = ('id'
@@ -45,7 +91,9 @@ class PrestadorSerializer(serializers.ModelSerializer):
                   ,'calificacion'
                   ,'imagePath'
                   ,'profesion'
-                  ,'insignia') 
+                  ,'insignia'
+                  ,'zona'
+                  ,'zona_id') 
 
 class CompraDtllSerializer(serializers.ModelSerializer):
     compra = serializers.PrimaryKeyRelatedField(queryset=Compra.objects.all())
@@ -94,6 +142,8 @@ class CompraDetalleSesioneSerializer(serializers.ModelSerializer):
                   ,'estado_id'
                   ,'compraDetalle'
                   ,'compraDetalle_id'
+                  ,'inicio'
+                  ,'fin'
                   )               
 
 class CompraDetalleSerializer(serializers.ModelSerializer):
@@ -184,19 +234,31 @@ class ProgramarSesionSerializer(serializers.Serializer):
 
     def validate(self,data):
         sesion = CompraDetalleSesion.objects.filter(
+            Q(estado_id=1) | Q(estado_id=2)  | Q(estado_id=4),
             pk = data["sesionId"],
             compraDetalle__compra__cliente__user_id = data["userId"]
             )
+       
         if(sesion.count()):
             sesion = sesion.first()
             disp = Disponibilidad()
-
-            if(sesion.estado.id != 1):
+            
+            if(sesion.compraDetalle.zona.contains(Point(data["longitud"], data["latitud"])) == False):
+                raise serializers.ValidationError({"ubicacion":"Ubicación sin cobertura del prestador"})
+ 
+            if(sesion.estado.id != 1 and sesion.estado.id != 2 and sesion.estado.id != 4):
                 raise serializers.ValidationError({"sesionId":"El estado de la sesión no es valido para programar"})
-          
-            if(sesion.compraDetalle.sesionPorAgendar-1 < 0 or sesion.compraDetalle.sesionAgendadas+1 > sesion.compraDetalle.cantidadDeSesiones ):
-                raise serializers.ValidationError({"sesion":"Sesión no valida para programar"}) 
 
+            # aplica solo para programar 
+            if(sesion.estado.id == 1):
+               if(sesion.compraDetalle.sesionPorAgendar-1 < 0 or sesion.compraDetalle.sesionAgendadas+1 > sesion.compraDetalle.cantidadDeSesiones ):
+                raise serializers.ValidationError({"sesion":"Sesión no valida para programar"})
+
+            # aplica solo para reprogramar 
+            if(sesion.estado.id == 2 or sesion.estado.id == 4):                
+                if(relativedelta(sesion.fechaInicio, datetime.now()).hours < 1):
+                    raise serializers.ValidationError({"sesion":"Solo se puede reprogramar sesión  una hora antes de la fecha de inicio."})                
+        
             if(sesion.compraDetalle.estado.id != 1):
                 raise serializers.ValidationError({"estadoPaquete":"El estado del paquete no es valido para programar"})
 
@@ -212,7 +274,7 @@ class ProgramarSesionSerializer(serializers.Serializer):
     @transaction.atomic
     def create(self, validated_data):
         try:
-            estado = EstadoCompraDetalleSesion.objects.get(pk=2)
+            
             cds = CompraDetalleSesion.objects.get(pk=validated_data["sesionId"])
             cds.titulo = validated_data["titulo"]
             cds.complemento = validated_data["complemento"]
@@ -220,10 +282,14 @@ class ProgramarSesionSerializer(serializers.Serializer):
             cds.latitud = validated_data["latitud"]
             cds.longitud = validated_data["longitud"]
             cds.fechaInicio =validated_data["fechaInicio"]
-            cds.estado=estado            
-            cds.compraDetalle.sesionAgendadas = cds.compraDetalle.sesionAgendadas + 1
-            cds.compraDetalle.sesionPorAgendar = cds.compraDetalle.sesionPorAgendar - 1
-            cds.compraDetalle.save()
+            # solo para programar
+            if(cds.estado.id == 1):
+                cds.estado= EstadoCompraDetalleSesion.objects.get(pk=2)            
+                cds.compraDetalle.sesionAgendadas = cds.compraDetalle.sesionAgendadas + 1
+                cds.compraDetalle.sesionPorAgendar = cds.compraDetalle.sesionPorAgendar - 1
+                cds.compraDetalle.save()
+            else:
+                cds.estado= EstadoCompraDetalleSesion.objects.get(pk=4)
             cds.save()
         except Exception as e: 
             print(e) 
@@ -231,5 +297,4 @@ class ProgramarSesionSerializer(serializers.Serializer):
 
         return validated_data
 
-        
     

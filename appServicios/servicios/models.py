@@ -1,4 +1,5 @@
-from django.db import models
+# from django.db import models
+from django.contrib.gis.db import models
 
 
 # Create your models here.
@@ -66,6 +67,7 @@ class CompraDetalle(models.Model):
     sesionAgendadas    = models.IntegerField(blank=True,null=True,default=0)
     sesionPorAgendar    = models.IntegerField(blank=True,null=True,default=0)
     duracionSesion = models.IntegerField()
+    zona = models.PolygonField(blank=True,null=True)
 
     created  = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
@@ -89,6 +91,8 @@ class CompraDetalleSesion(models.Model):
     complemento = models.CharField(blank=True,max_length=50,null=True)
     fechaInicio = models.DateTimeField(null=True)
     fechaFin = models.DateTimeField(null=True)
+    inicio = models.DateTimeField(null=True)
+    fin = models.DateTimeField(null=True)
 
     created  = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
@@ -112,4 +116,12 @@ class Opinion(models.Model):
         return str({"cliente":self.cliente,"servicio":self.servicio,"prestador":self.prestador})
 
 
-        
+class Zona(models.Model):
+    name = models.CharField(max_length=30)
+    zona = models.PolygonField(blank=True,null=True)
+    color = models.CharField(blank=True,null=True,max_length=30)
+    created  = models.DateTimeField(auto_now_add=True)
+    modified = models.DateTimeField(auto_now=True)
+    
+    def __str__(self):
+        return self.name           

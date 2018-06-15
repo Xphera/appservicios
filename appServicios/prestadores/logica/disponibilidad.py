@@ -4,6 +4,7 @@ import dateparser
 from datetime import datetime, date 
 import calendar
 import json
+from django.db.models import Q
 
 class Disponibilidad(object):
     #TODO: revisar parametros de entrada en metodos
@@ -60,11 +61,14 @@ class Disponibilidad(object):
             #si es hoy se establece disponibidad en false a las horas pasadas 
             if (esHoy):
                 dia = hoy.weekday()+1
-                for hora in range(hoy.hour+1):
+                # +2 para llegar a la hora actual mas una hora
+                for hora in range(hoy.hour+2):
                     disponibilidad[dia][hora] = False
+                  
 
-            sesiones = CompraDetalleSesion.objects.filter(
-                estado_id = 2,
+            sesiones = CompraDetalleSesion.objects.filter(                
+                Q(estado_id=2) | Q(estado_id=4),
+                # estado_id = 2,
                 compraDetalle__estado_id = 1,
                 fechaInicio__year=fechaInicio.year,
                 fechaInicio__month=fechaInicio.month,
@@ -86,8 +90,9 @@ class Disponibilidad(object):
         
         fechaInicio = dateparser.parse(data["fechaInicio"])
         sesion = CompraDetalleSesion.objects.filter(
+            Q(estado_id=1) | Q(estado_id=2) | Q(estado_id=4),
             pk=data["sesionId"],
-            estado_id = 1,
+            # estado_id = 1,
             compraDetalle__estado_id = 1
             ).first()
 

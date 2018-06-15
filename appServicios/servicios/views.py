@@ -1,3 +1,4 @@
+import json
 from django.shortcuts import render
 from rest_framework import (viewsets, permissions,status)
 from rest_framework.decorators import api_view, permission_classes
@@ -5,6 +6,8 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 import dateparser
 from datetime import datetime
+from django.contrib.gis.geos import GEOSGeometry
+from django.db.models import Q
 
 from parametrizacion.models import (EstadoCompraDetalleSesion)
 
@@ -15,7 +18,8 @@ from servicios.models import (
     Paquete, 
     Compra,
     CompraDetalle,
-    CompraDetalleSesion)
+    CompraDetalleSesion,
+    Zona )
 from servicios.serializers import (
     CategoriaSerializer, 
     ServicioSerializer, 
@@ -24,7 +28,10 @@ from servicios.serializers import (
     CompraDetalleSerializer,
     CompraDetalleSesioneSerializer,
     CalificarSesionSerializer,
-    ProgramarSesionSerializer)
+    ProgramarSesionSerializer,
+    ZonaSerializer)
+
+from django.core.serializers import serialize
 
 class CategoriaViewSet(viewsets.ModelViewSet):
     queryset = Categoria.objects.all()
@@ -73,7 +80,13 @@ class CalificarSesionViewSet(APIView):
 class ProximaSesionViewSet(APIView):
  
     def get(self,request,format=None):
-        qs = CompraDetalleSesion.objects.filter(compraDetalle__compra__cliente__user = request.user,estado=2,compraDetalle__estado_id=1,calificacion=0).order_by("fechaInicio").first()               
+        qs = CompraDetalleSesion.objects.filter(
+            Q(estado_id=2)  | Q(estado_id=4),
+            compraDetalle__compra__cliente__user = request.user,
+            # estado=2,
+            compraDetalle__estado_id=1,
+            calificacion=0
+            ).order_by("fechaInicio").first()               
         if qs:
             serializer = CompraDetalleSesioneSerializer(qs,many=False)
             return Response(serializer.data)
@@ -110,3 +123,44 @@ class ProgramarSesionViewSet(APIView):
             return Response({"estado":"ok"})
         else:
             return Response(serializer.errors, status= status.HTTP_400_BAD_REQUEST)
+
+@permission_classes((permissions.IsAuthenticated,))
+class ZonaSesionViewSet(APIView):
+    def get(self,request,format=None):
+        qs = Zona.objects.all()
+        if qs:
+            serializer = ZonaSerializer(qs,many=True)
+            return Response(serializer.data)
+        else:
+            return Response({})
+
+    def post(self,request,format=None):
+        data=request.data
+        data["zona"] = GEOSGeometry(str(json.loads(data["zona"])["geometry"]))
+        serializer = ZonaSerializer(data=request.data)
+        if(serializer.is_valid()):
+            serializer.save()
+            return Response({"estado":"ok"}, status=status.HTTP_200_OK)
+        else:
+            return Response(serializer.errors, status= status.HTTP_400_BAD_REQUEST)
+
+    def put(self,request,pk,format=None):
+        data=request.data
+        data["zona"] = GEOSGeometry(str(json.loads(data["zona"])["geometry"]))
+        serializer = ZonaSerializer(pk,data=request.data)
+        if(serializer.is_valid()):
+            serializer.save()
+            return Response({"estado":"ok"}, status=status.HTTP_200_OK)
+        else:
+            return Response(serializer.errors, status= status.HTTP_400_BAD_REQUEST)    
+
+    def delete(self,request,pk,format=None):
+        data=request.data
+        z=Zona.objects.get(pk=pk)
+        z.delete()
+        return Response({"estado":"ok"}, status=status.HTTP_200_OK)
+        # if(serializer.is_valid()):
+        #     serializer.save()
+        #     return Response({"estado":"ok"}, status=status.HTTP_200_OK)
+        # else:
+        #     return Response(serializer.errors, status= status.HTTP_400_BAD_REQUEST)

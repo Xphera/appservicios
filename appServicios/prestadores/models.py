@@ -1,4 +1,5 @@
-from django.db import models
+# from django.db import models
+from django.contrib.gis.db import models
 from parametrizacion.commonChoices import TIPO_DOCUMENTO_CHOICES
 from parametrizacion.models import Municipio
 from django.contrib.auth.models import User
@@ -28,6 +29,8 @@ class Prestador(models.Model):
     insignia = models.CharField(max_length=2,null=True,verbose_name="Insignia")
     profesion = models.CharField(max_length=56,null=True,verbose_name="Profesión")
     imagePath = models.FileField(upload_to="media/prestadores",null=True)
+
+    zona = models.ForeignKey(to='servicios.Zona', related_name='zonas', on_delete=models.PROTECT, default=None, null=True)
 
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)

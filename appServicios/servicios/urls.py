@@ -32,7 +32,8 @@ urlpatterns = [
     path('PaqueteActivo/', PaqueteActivoViewSet.as_view()),
     path('ProximaSesion/', ProximaSesionViewSet.as_view()),
     path('ProgramarSesion/', ProgramarSesionViewSet.as_view()),
-    
+    path('Zona/', ZonaSesionViewSet.as_view()),
+    path('Zona/<int:pk>/', ZonaSesionViewSet.as_view()),
 ]
 
 #urlpatterns = format_suffix_patterns(urlpatterns)

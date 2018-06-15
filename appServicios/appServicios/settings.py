@@ -41,7 +41,13 @@ PROJECT_APPS = [
     'payU'
 ]
 
-REST_FRAMEWORK_APP = ['rest_framework','rest_framework.authtoken','corsheaders','rest_framework_swagger']
+REST_FRAMEWORK_APP = [
+    'rest_framework',
+    'rest_framework.authtoken',
+    'corsheaders',
+    'rest_framework_swagger',
+    'rest_framework_gis'
+    ]
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -98,7 +104,8 @@ DATABASES = {
     #     'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
     # },
      'default': {
-        'ENGINE': 'django.db.backends.mysql',
+        # 'ENGINE': 'django.db.backends.mysql',
+        'ENGINE': 'django.contrib.gis.db.backends.mysql',
         'NAME': 'appservicios',
         'USER': 'root',
         'PASSWORD': '',
@@ -161,6 +168,7 @@ REST_FRAMEWORK = {
 ## You must add the hosts that are allowed to do cross-site requests to CORS_ORIGIN_WHITELIST, or set CORS_ORIGIN_ALLOW_ALL to True to allow all hosts.
 CORS_ORIGIN_ALLOW_ALL = True
 CORS_ALLOW_CREDENTIALS = True
+
 
 
 #CONFIGURACION DE ENVIO DE CORREO ELECTRONICO
