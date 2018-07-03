@@ -9,8 +9,8 @@ from django.db.models import Q
 class Disponibilidad(object):
     #TODO: revisar parametros de entrada en metodos
 
-    def obtener(self,prestadorId):
-        prestador = Prestador.objects.get(pk=prestadorId)
+    def obtener(self,userId):
+        prestador = Prestador.objects.get(user_id=userId)
         disponibilidad = Disp.objects.filter(prestador = prestador)
         output={}
         for disp in disponibilidad:
@@ -24,12 +24,12 @@ class Disponibilidad(object):
     def guardar(self,data):
         bulkDisponibilidad = []
         try: 
-            prestador = Prestador.objects.get(pk=1)
+            prestador = Prestador.objects.get(user_id=data["usuarioId"])
 
             # #buscar y eliminar si prestador tiene disponibilidad registrada.
             Disp.objects.filter(prestador=prestador).delete()
 
-            for diaid, dia in enumerate(data): 
+            for diaid, dia in enumerate(data["disponibilidad"]): 
                 if( diaid > 0):
                     for horaid,valor in enumerate(dia):
                         disp = Disp()
@@ -43,8 +43,8 @@ class Disponibilidad(object):
         except Exception as e:
             return e
 
-    def programacion(self,fechaInicio,prestadorId):
-        disponibilidad = self.obtener(prestadorId)
+    def programacion(self,fechaInicio,userId):
+        disponibilidad = self.obtener(userId)
         fechaInicio = dateparser.parse(fechaInicio)
 
         # obtengo dias pasado y hoy 

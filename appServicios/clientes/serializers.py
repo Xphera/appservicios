@@ -294,6 +294,14 @@ class RegistrarInformacionBasicaSerializer(serializers.Serializer):
         return validated_data
 
 
+class ClienteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Cliente
+        fields = ('id','nombres','primerApellido','segundoApellido'
+                  ,'tipoDocumento','numeroDocumento','telefono','email'
+                  ,'fechaNacimiento','user')
+
+
 # class ClienteInfobasicaSerializer(serializers.ModelSerializer):
 #     class Meta:
 #         model = Cliente
@@ -305,13 +313,7 @@ class RegistrarInformacionBasicaSerializer(serializers.Serializer):
 #SERIALIZER PARA API NAVEGABLE
 ''' --------------------------------------------------------------------------------------------------------------  '''
 
-class ClienteSerializer(serializers.HyperlinkedModelSerializer):
-    compras = serializers.PrimaryKeyRelatedField(many=True, queryset=Compra.objects.all())
-    class Meta:
-        model = Cliente
-        fields = ('id','nombres','primerApellido','segundoApellido'
-                  ,'tipoDocumento','numeroDocumento','telefono','email'
-                  ,'fechaNacimiento','user','compras')
+
 
 class UbicacionSerializerApi(serializers.ModelSerializer):
     class Meta:

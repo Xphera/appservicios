@@ -26,6 +26,10 @@ from rest_framework.routers import DefaultRouter
 from rest_framework.authtoken import views as authTokenViews
 from rest_framework_swagger.views import get_swagger_view
 from servicios.views import (CategoriaViewSet,ServicioViewSet,PaqueteViewSet,CompraViewSet)
+from django.conf import settings
+from django.conf.urls.static import static
+from django.conf.urls import url
+
 
 router = DefaultRouter()
 
@@ -63,4 +67,4 @@ urlpatterns = [
     path('api/servicios/',include('servicios.urls')),
     path('api/nav/',include(router.urls)),
     path('api/help/',schema_view)
-]
+]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT) 

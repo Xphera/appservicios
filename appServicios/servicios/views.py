@@ -29,7 +29,12 @@ from servicios.serializers import (
     CompraDetalleSesioneSerializer,
     CalificarSesionSerializer,
     ProgramarSesionSerializer,
-    ZonaSerializer)
+    ZonaSerializer,
+    IniciarSesionSerializer,
+    FinalizarSesionSerializer,
+    CancelarSesionSerializer)
+
+from prestadores.permissions import EsPrestador    
 
 from django.core.serializers import serialize
 
@@ -124,7 +129,7 @@ class ProgramarSesionViewSet(APIView):
         else:
             return Response(serializer.errors, status= status.HTTP_400_BAD_REQUEST)
 
-@permission_classes((permissions.IsAuthenticated,))
+@permission_classes((permissions.IsAuthenticated,EsPrestador,))
 class ZonaSesionViewSet(APIView):
     def get(self,request,format=None):
         qs = Zona.objects.all()
@@ -164,3 +169,46 @@ class ZonaSesionViewSet(APIView):
         #     return Response({"estado":"ok"}, status=status.HTTP_200_OK)
         # else:
         #     return Response(serializer.errors, status= status.HTTP_400_BAD_REQUEST)
+
+@permission_classes((permissions.IsAuthenticated,EsPrestador,))
+class IniciarSesionViewSet(APIView):
+    
+    def post(self, request,format=None):        
+        data = request.data
+        data["userId"] = request.user.id
+
+        serializer = IniciarSesionSerializer(data=data)
+        if(serializer.is_valid()):
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        else:
+            return Response(serializer.errors, status= status.HTTP_400_BAD_REQUEST)  
+
+@permission_classes((permissions.IsAuthenticated,EsPrestador,))
+class FinalizarSesionViewSet(APIView):
+    
+    def post(self, request,format=None):        
+        data = request.data
+        data["userId"] = request.user.id
+
+        serializer = FinalizarSesionSerializer(data=data)
+        if(serializer.is_valid()):
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        else:
+            return Response(serializer.errors, status= status.HTTP_400_BAD_REQUEST) 
+
+@permission_classes((permissions.IsAuthenticated,EsPrestador,))
+class CancelarSesionViewSet(APIView):
+    
+    def post(self, request,format=None):        
+        data = request.data
+        data["userId"] = request.user.id
+
+        serializer = CancelarSesionSerializer(data=data)
+        if(serializer.is_valid()):
+            serializer.save()
+            print(serializer.data)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        else:
+            return Response(serializer.errors, status= status.HTTP_400_BAD_REQUEST)

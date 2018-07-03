@@ -1,17 +1,19 @@
 from rest_framework import serializers
-from prestadores.models import (Prestador,Disponibilidad)
+from prestadores.models import (Prestador,Disponibilidad,Estudio)
 from servicios.models import (Paquete,Servicio,CompraDetalleSesion,Zona)
-from servicios.serializers import (ZonaSerializer)
+from servicios.serializers import (ZonaSerializer,ServicioSerializer)
 from parametrizacion.serializers import MunicipioSerializer
 from django.db import transaction
 from datetime import date
 from django.db.models import Q
+from rest_framework_gis.serializers import GeoFeatureModelSerializer, GeometrySerializerMethodField
 
 class PrestadorSerializer(serializers.HyperlinkedModelSerializer):
     paquetes = serializers.PrimaryKeyRelatedField(many=True, queryset=Paquete.objects.all())
     servicios = serializers.PrimaryKeyRelatedField(many=True, queryset=Servicio.objects.all())
-    zona = serializers.PrimaryKeyRelatedField(many=False, queryset=Zona.objects.all())
 
+    estudios = serializers.PrimaryKeyRelatedField(many=True, queryset=Estudio.objects.all())
+    
     zona = ZonaSerializer(read_only=True)
     zona_id = serializers.PrimaryKeyRelatedField(queryset=Zona.objects.all(), write_only=True, source='zonas')
     class Meta:
@@ -23,6 +25,7 @@ class PrestadorSerializer(serializers.HyperlinkedModelSerializer):
                   ,'fechaNacimiento'
                   ,'user'
                   ,'paquetes'
+                  ,'estudios'
                   ,'servicios'
                   ,'perfil'
                   ,'calificacion'
@@ -31,6 +34,35 @@ class PrestadorSerializer(serializers.HyperlinkedModelSerializer):
                   ,'insignia'
                   ,'zona'
                   ,'zona_id')
+
+# class PrestadorSerializer(serializers.Serializer):
+#     paquetes = serializers.PrimaryKeyRelatedField(many=True, queryset=Paquete.objects.all())
+#     # servicios = serializers.PrimaryKeyRelatedField(many=True, queryset=Servicio.objects.all())
+#     servicios = serializers.PrimaryKeyRelatedField(queryset=Servicio.objects.all(), write_only=True,source='serviciosx')
+#     servicios_id = ServicioSerializer(read_only=True)
+#     # zona = ZonaSerializer(read_only=True)
+#     # zona_id = serializers.PrimaryKeyRelatedField(queryset=Zona.objects.all(), write_only=True, source='zonas')
+#     class Meta:
+#         model = Prestador
+#         fields = ('id','nombres','primerApellido','segundoApellido'
+#                   ,'tipoDocumento','numeroDocumento','telefono','email'
+#                   ,'direccion'
+#                   ,'municipio'
+#                   ,'fechaNacimiento'
+#                   ,'user'
+#                   ,'paquetes'
+#                   ,'servicios'
+#                   ,'servicios_id'
+#                   ,'perfil'
+#                   ,'calificacion'
+#                   ,'imagePath'
+#                   ,'profesion'
+#                   ,'insignia'
+#                 #   ,'zona'
+#                 #   ,'zona_id'
+#                   )
+
+
 
 class programacionSegunSesionSerializer(serializers.Serializer):
     sesionId = serializers.IntegerField()
@@ -73,16 +105,20 @@ class disponibilidadMesSerializer(serializers.Serializer):
             raise serializers.ValidationError({"sesionId":"Sin sesión a programar"})
         return data 
 
-class zonaSerializer(serializers.Serializer):
-    zonaId = serializers.IntegerField()
-    usuarioId = serializers.IntegerField()
+class zonaSerializer(GeoFeatureModelSerializer):    
+    zonaId = serializers.IntegerField(write_only=True)
+    usuarioId = serializers.IntegerField(write_only=True)
+    id = serializers.IntegerField(read_only=True)
+    color = serializers.CharField(read_only=True)
+    name = serializers.CharField(read_only=True)
     class Meta:
-        model = Prestador
-        fields = ('zona')
+        model = Zona
+        geo_field = "zona"
+        fields = ('zona','name','id','color','zonaId','usuarioId')
     @transaction.atomic
-    def update(self,pk,validated_data):
+    def create(self,validated_data):
         z = Zona.objects.get(pk=validated_data["zonaId"])
-        p = Prestador.objects.get(user_id=pk)
+        p = Prestador.objects.get(user_id=validated_data["usuarioId"])
         p.zona = z
         p.save()
         return validated_data

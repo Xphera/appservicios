@@ -104,6 +104,15 @@ class CompraDetalleSesion(models.Model):
         # def __str__(self):
         #     return ' - ('+self.compra.cliente.numeroDocumento+'-'+self.nombre+') $['+str(self.valor)+']'    
 
+class CompraDetalleSesionNovedad(models.Model):
+    compraDetalleSesion  = models.ForeignKey(to='CompraDetalleSesion', related_name='compradetallesesionnovedad', on_delete=models.PROTECT)
+    novedad = models.CharField(max_length=200) 
+    prestador = models.ForeignKey(to='prestadores.Prestador',related_name="prestadornovedad", on_delete=models.PROTECT)
+    created  = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ('created',)
+
 
 class Opinion(models.Model):
     cliente = models.ForeignKey(to='clientes.Cliente', related_name="opiniones", on_delete=models.PROTECT)

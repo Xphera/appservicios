@@ -25,7 +25,7 @@ SECRET_KEY = '_m25+$nzl=#^x1r+r-^2^&*!3!iqrknsbj4-424j@57ivzg-_6'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['127.0.0.1','192.168.226.77']
+ALLOWED_HOSTS = ['127.0.0.1','192.168.226.77','192.168.1.62','192.168.137.1']
 
 
 # Application definition
@@ -150,15 +150,13 @@ LANGUAGE_CODE = 'es-CO'
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.0/howto/static-files/
 
-STATIC_URL = '/static/'
-
 
 #Rest Freamework configuration
 
 REST_FRAMEWORK = {
     # Use Django's standard `django.contrib.auth` permissions,
     # or allow read-only access for unauthenticated users.
-    'DEFAULT_AUTHENTICATION_CLASSES': (       'rest_framework.authentication.TokenAuthentication',),
+    'DEFAULT_AUTHENTICATION_CLASSES': ('rest_framework.authentication.TokenAuthentication',),
     'DEFAULT_PERMISSION_CLASSES': ('rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly',),
     'DEFAULT_FILTER_BACKENDS': ('django_filters.rest_framework.DjangoFilterBackend',)
 }
@@ -184,6 +182,12 @@ EMAIL_HOST_USER = 'adgranados@gmail.com'
 EMAIL_HOST_PASSWORD = '85103132962Ad5530'
 
 
+# Static files (CSS, JavaScript, Images)
+# https://docs.djangoproject.com/en/2.0/howto/static-files/
 
+STATIC_URL = '/static/'
+STATIC_ROOT = os.path.dirname(BASE_DIR) + '/public/static/'
 
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.dirname(BASE_DIR) + '/public/media/'
 
