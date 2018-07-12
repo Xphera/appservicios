@@ -7,7 +7,6 @@ import json
 from django.db.models import Q
 
 class Disponibilidad(object):
-    #TODO: revisar parametros de entrada en metodos
 
     def obtener(self,userId):
         prestador = Prestador.objects.get(user_id=userId)
@@ -73,7 +72,7 @@ class Disponibilidad(object):
                 fechaInicio__year=fechaInicio.year,
                 fechaInicio__month=fechaInicio.month,
                 fechaInicio__day=fechaInicio.day,
-                compraDetalle__prestador_id = prestadorId
+                compraDetalle__prestador__user_id = userId
                 )
 
 
@@ -96,7 +95,7 @@ class Disponibilidad(object):
             compraDetalle__estado_id = 1
             ).first()
 
-        programacion = self.programacion(data["fechaInicio"],sesion.compraDetalle.prestador.id)
+        programacion = self.programacion(data["fechaInicio"],sesion.compraDetalle.prestador.user_id)
 
         dia = fechaInicio.weekday()+1
         duracion = sesion.compraDetalle.duracionSesion
@@ -105,7 +104,10 @@ class Disponibilidad(object):
             if(programacion[dia][hora]==True):
                 disponible = False
                 for i in range(0,duracion):
-                    if(programacion[dia][hora+i]==True):
+                    if(hora+i>23):
+                        disponible = False
+                        break
+                    elif(programacion[dia][hora+i]==True):
                         disponible = True
                     else:
                         disponible = False

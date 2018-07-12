@@ -37,6 +37,8 @@ urlpatterns = [
     path('IniciarSesion/', IniciarSesionViewSet.as_view()),
     path('FinalizarSesion/', FinalizarSesionViewSet.as_view()),
     path('CancelarSesion/', CancelarSesionViewSet.as_view()),
+    path('CancelarPaquete/', CancelarPaqueteViewSet.as_view()),
+    
 ]
 
 #urlpatterns = format_suffix_patterns(urlpatterns)

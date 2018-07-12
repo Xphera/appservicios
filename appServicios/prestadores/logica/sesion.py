@@ -8,8 +8,6 @@ from django.db.models import Q
 
 class Sesion(object):
     #TODO: revisar parametros de entrada en metodos
-
-
     def porIniciar(self,userId):
         sesiones = CompraDetalleSesion.objects.filter(                
                 Q(estado_id=2) | Q(estado_id=4),
@@ -43,3 +41,16 @@ class Sesion(object):
                 compraDetalle__prestador__user_id = userId
                 ).order_by('-fin')        
         return  sesiones
+
+    def detalle(self,userId,sesionId):
+        sesiones = CompraDetalleSesion.objects.filter(                
+                Q(estado_id=2)|Q(estado_id=4),
+                compraDetalle__estado_id = 1,
+                compraDetalle__prestador__user_id = userId,
+                id = sesionId
+                ).order_by('-fin') .first()         
+        return  sesiones    
+
+
+
+

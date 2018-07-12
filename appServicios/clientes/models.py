@@ -17,8 +17,9 @@ class Cliente(models.Model):
     fechaNacimiento = models.DateField(verbose_name="Fecha de Nacimiento", null=True)
     sexo = models.ForeignKey(to='parametrizacion.Sexo',on_delete=models.PROTECT, default=None, null=True)
     user = models.ForeignKey(to=User, related_name='clientes', on_delete=models.PROTECT, default=None, null=False)
+    saldoBolsa = models.FloatField(default=0)
     activo = models.BooleanField(default=False)
-
+    imagePath = models.FileField(upload_to="clientes",null=True)
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
 
@@ -79,3 +80,16 @@ class Sesion(models.Model):
     def __str__(self):
         return str((self.cliente,self.compra))
 
+
+class Bolsa(models.Model):
+    cliente = models.ForeignKey(to='Cliente', on_delete=models.PROTECT)
+    compraDetalle = models.ForeignKey(to='servicios.CompraDetalle',related_name="bolsaCompraDetalle",null=True, on_delete=models.PROTECT)
+    tipo = models.CharField(max_length=10)
+    descripcion = models.TextField()
+    valor    = models.FloatField()
+
+    created = models.DateTimeField(auto_now_add=True)
+    modified = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return str((self.cliente,self.valor))

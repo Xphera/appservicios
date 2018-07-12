@@ -29,13 +29,10 @@ from servicios.views import (CategoriaViewSet,ServicioViewSet,PaqueteViewSet,Com
 from django.conf import settings
 from django.conf.urls.static import static
 from django.conf.urls import url
+from .customAuthToken import CustomAuthToken
 
 
 router = DefaultRouter()
-
-#PRESTADORES ------------------------------------------------------------------------------------------------
-router.register(prefix='prestadores',   viewset=PrestadorViewSet,       base_name='prestador')
-
 #SERVICIOS --------------------------------------------------------------------------------------------------
 router.register(prefix='categorias',    viewset=CategoriaViewSet,       base_name='categoria')
 router.register(prefix='servicios',     viewset=ServicioViewSet,        base_name='servicio')
@@ -60,7 +57,8 @@ schema_view = get_swagger_view(title='APPSERVICIOS XPHERA API')
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api-auth/', include('rest_framework.urls')),
-    path('api-token-auth/', authTokenViews.obtain_auth_token),
+    path('api-token-auth/', CustomAuthToken.as_view()),
+    # path('api-token-auth/', authTokenViews.obtain_auth_token),
     path('api/clientes/',include('clientes.urls')),
     path('api/parametricos/',include('parametrizacion.urls')),
     path('api/prestadores/',include('prestadores.urls')),

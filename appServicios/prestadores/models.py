@@ -3,6 +3,7 @@ from django.contrib.gis.db import models
 from parametrizacion.commonChoices import TIPO_DOCUMENTO_CHOICES
 from parametrizacion.models import Municipio
 from django.contrib.auth.models import User
+
 # Create your models here.
 
 class Prestador(models.Model):
@@ -31,7 +32,7 @@ class Prestador(models.Model):
     calificacion = models.CharField(max_length=2,null=True,verbose_name="Calificación")
     insignia = models.CharField(max_length=2,null=True,verbose_name="Insignia")
     profesion = models.CharField(max_length=56,null=True,verbose_name="Profesión")
-    imagePath = models.FileField(upload_to="media/prestadores",null=True)
+    imagePath = models.FileField(upload_to="prestadores",null=True)
 
     zona = models.ForeignKey(to='servicios.Zona', related_name='zonas', on_delete=models.PROTECT, default=None, null=True)
 
@@ -50,17 +51,22 @@ class Disponibilidad(models.Model):
     disponibilidad = models.BooleanField()
     prestador = models.ForeignKey(to=Prestador, on_delete=models.PROTECT)
     
-class PrestadorServicio(models.Model):
-    servicios = models.ForeignKey(to='servicios.Servicio', related_name='servicios_prestador', on_delete=models.PROTECT, default=None, null=True)
-    prestador = models.ForeignKey(to='Prestador', related_name='prestador_servicio', on_delete=models.PROTECT, default=None, null=True)
+class PrestadorPaquete(models.Model):
+    paquete = models.ForeignKey(to='servicios.Paquete', related_name='paquetes_prestador', on_delete=models.PROTECT, default=None, null=True)
+    prestador = models.ForeignKey(to='Prestador', related_name='prestador_paquetes', on_delete=models.PROTECT, default=None, null=True)
     valor = models.IntegerField()
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
 
-class Estudio(models.Model):
-    prestador = models.ForeignKey(to='Prestador', related_name='estudios', on_delete=models.PROTECT, default=None, null=True)
+class Formacion(models.Model):
+    prestador = models.ForeignKey(to='Prestador', related_name='prestador_formacion', on_delete=models.PROTECT, default=None, null=True)
     titulo = models.CharField(max_length=100,verbose_name="Titulo")
     institucion = models.CharField(max_length=100,verbose_name="Institucion")
     año = models.IntegerField(verbose_name="Año")
+    archivoPath = models.FileField(upload_to="prestadores/formacion",null=True,verbose_name="Archivo")
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
+    class Meta:
+        verbose_name_plural = "Formaciones"
+    def __str__(self):
+        return str({"titulo":self.titulo, "Prestador":self.prestador.nombres+" "+self.prestador.primerApellido+" "+self.prestador.segundoApellido,"documento":self.prestador.numeroDocumento})

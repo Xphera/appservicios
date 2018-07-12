@@ -5,6 +5,7 @@ from payU.models import (TarjetaDeCredito,CobroTarjetaDeCredito,CodigoRespuetaPa
 from clientes.models import (Cliente)
 from servicios.models import (Paquete,Compra,CompraDetalle,CompraDetalleSesion)
 from parametrizacion.models import (TipoMedioPago,EstadoCompra,EstadoCompraDetalle,EstadoCompraDetalleSesion)
+from servicios.logica.historico import (sesionHistorico,compraDetalleHistorico,compraHistorico)
 import uuid
 
 class TokenPrincipalSerializer(serializers.Serializer):
@@ -133,6 +134,8 @@ class PaySerializer(serializers.Serializer):
     cuotas = serializers.IntegerField()
     paqueteId = serializers.IntegerField()
     user_id = serializers.IntegerField()
+    prestadorId = serializers.IntegerField()
+    idRelacionPrestadorPaquete= serializers.IntegerField()
 
     def validate_cuotas(self,cuotas):
         if(cuotas < 1 or cuotas > 12):
@@ -149,11 +152,13 @@ class PaySerializer(serializers.Serializer):
     def create(self, validated_data):
             output ={}
             payu = PayU()
-
+ 
             try:
                 cliente = Cliente.objects.get(user_id=validated_data["user_id"])
                 tc =TarjetaDeCredito.objects.get(creditCardTokenId=validated_data['tokenId'], payerId__user__id = validated_data["user_id"])
-                pq = Paquete.objects.get( id =  validated_data['paqueteId'] ) 
+                pq = Paquete.objects.get( id =  validated_data['paqueteId'], paquetes_prestador__paquete_id = validated_data['paqueteId'],paquetes_prestador__id =1  ) 
+                #relacion entre paquetes y prestador
+                prestadorPaquete = pq.paquetes_prestador.get(id= validated_data['idRelacionPrestadorPaquete'])
                 tipoMedioPago = TipoMedioPago.objects.get(id=1)
                 estadoCompra = EstadoCompra.objects.get(id=1)
                 estadoCompraDetalle =  EstadoCompraDetalle.objects.get(id=1)
@@ -173,50 +178,12 @@ class PaySerializer(serializers.Serializer):
             except EstadoCompraDetalleSesion.DoesNotExist:
                 raise serializers.ValidationError({"error":"no existe estado de detalle compra sesión"})
 
-
-            # compra = Compra()
-            # compra.cliente = cliente
-            # compra.valor = pq.valor
-            # compra.medioPago = tipoMedioPago
-            # compra.estado = estadoCompra
-            # compra.save()
-
-            # #TODO: VALIDAR FUNCIONAMIENTO DE MODIFICACION DE DURACION DE SESION
-            # #crear paquete comprado.
-            # compraDt = CompraDetalle()
-            # compraDt.compra = compra
-            # compraDt.estado = estadoCompraDetalle
-            # compraDt.cantidadDeSesiones = pq.cantidadDeSesiones
-            # compraDt.detalle = pq.detalle
-            # compraDt.nombre = pq.nombre
-            # compraDt.prestador = pq.prestador
-            # compraDt.paquete = pq
-            # compraDt.valor = pq.valor
-            # compraDt.duracionSesion = pq.duracionSesion            
-            # compraDt.save()
-
-            # #compra detalle sesion
-            
-            # bulkCompraDetalleSesion = []
-            # for i in range(0,compraDt.cantidadDeSesiones):
-            #     cds = CompraDetalleSesion()
-            #     cds.compraDetalle = compraDt
-            #     cds.estado = estadoCompraDetalleSesion
-            #     bulkCompraDetalleSesion.append(cds)
-            # CompraDetalleSesion.objects.bulk_create(bulkCompraDetalleSesion)
-            
-                        
-            # output['error'] = False
-            # output['compra'] = compra.id
-            # output['detalleCompra'] = compraDt.id
-            # return output
-
             ctd = CobroTarjetaDeCredito()
             ctd.cliente =  cliente
             ctd.creditCardToken = tc
             ctd.description = pq.nombre+" "+pq.detalle
             ctd.notifyUrl = "http://localhost"
-            ctd.value = pq.valor
+            ctd.value = prestadorPaquete.valor
             ctd.cuotas = validated_data['cuotas'] 
             ctd.referenceCode = uuid.uuid1()
             ctd.save()
@@ -253,10 +220,14 @@ class PaySerializer(serializers.Serializer):
                     compra.estado = estadoCompra
                     compra.save()
 
+                    # historico
+                    ch = compraHistorico()
+                    ch.insertar(compra,validated_data["user_id"])
+
+                    # guardar numero de compra en cobro de tarjeta de credito
                     ctd.compra = compra
                     ctd.save()
-                    
-                    # #TODO: VALIDAR FUNCIONAMIENTO DE MODIFICACION DE DURACION DE SESION
+                                        
                     #crear paquete comprado.
                     compraDt = CompraDetalle()
                     compraDt.compra = compra
@@ -264,13 +235,17 @@ class PaySerializer(serializers.Serializer):
                     compraDt.cantidadDeSesiones = pq.cantidadDeSesiones
                     compraDt.detalle = pq.detalle
                     compraDt.nombre = pq.nombre
-                    compraDt.prestador = pq.prestador
+                    compraDt.prestador = prestadorPaquete.prestador
                     compraDt.paquete = pq
-                    compraDt.valor = pq.valor
+                    compraDt.valor = prestadorPaquete.valor
                     compraDt.duracionSesion = pq.duracionSesion
                     compraDt.sesionPorAgendar = pq.cantidadDeSesiones
-                    compraDt.zona = pq.prestador.zona.zona
+                    compraDt.zona = prestadorPaquete.prestador.zona.zona
                     compraDt.save()
+
+                    # historico
+                    cdh = compraDetalleHistorico()
+                    cdh.insertar(compraDt,validated_data["user_id"])
 
                     #compra detalle sesion
                     bulkCompraDetalleSesion = []
@@ -280,8 +255,11 @@ class PaySerializer(serializers.Serializer):
                         cds.estado = estadoCompraDetalleSesion
                         bulkCompraDetalleSesion.append(cds)
                     CompraDetalleSesion.objects.bulk_create(bulkCompraDetalleSesion)
-            
-                                            
+
+                    # historico
+                    cdsh = sesionHistorico()
+                    cdsh.insertar(CompraDetalleSesion.objects.filter(compraDetalle=compraDt),validated_data["user_id"])    
+                                                           
                     output['error'] = False
                     output['compra'] = compra.id
                     output['detalleCompra'] = compraDt.id

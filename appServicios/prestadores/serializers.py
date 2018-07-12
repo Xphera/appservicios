@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from prestadores.models import (Prestador,Disponibilidad,Estudio)
+from prestadores.models import (Prestador,Disponibilidad,Formacion)
 from servicios.models import (Paquete,Servicio,CompraDetalleSesion,Zona)
 from servicios.serializers import (ZonaSerializer,ServicioSerializer)
 from parametrizacion.serializers import MunicipioSerializer
@@ -7,33 +7,44 @@ from django.db import transaction
 from datetime import date
 from django.db.models import Q
 from rest_framework_gis.serializers import GeoFeatureModelSerializer, GeometrySerializerMethodField
+from utils.Utils import Validators
 
-class PrestadorSerializer(serializers.HyperlinkedModelSerializer):
-    paquetes = serializers.PrimaryKeyRelatedField(many=True, queryset=Paquete.objects.all())
-    servicios = serializers.PrimaryKeyRelatedField(many=True, queryset=Servicio.objects.all())
+class PrestadorSerializer(serializers.ModelSerializer):
+    # paquetes = serializers.PrimaryKeyRelatedField(many=True, queryset=Paquete.objects.all())
+    # servicios = serializers.PrimaryKeyRelatedField(many=True, queryset=Servicio.objects.all())
+    # prestador_formacion = serializers.PrimaryKeyRelatedField(many=True, queryset=Formacion.objects.all())    
+    # zona = ZonaSerializer(read_only=True)
+    # zona_id = serializers.PrimaryKeyRelatedField(queryset=Zona.objects.all(), write_only=True, source='zonas')
 
-    estudios = serializers.PrimaryKeyRelatedField(many=True, queryset=Estudio.objects.all())
-    
-    zona = ZonaSerializer(read_only=True)
-    zona_id = serializers.PrimaryKeyRelatedField(queryset=Zona.objects.all(), write_only=True, source='zonas')
+    def validate_telefono(self,telefono):
+        if(not Validators.es_numero_telefonico(str(telefono))):
+            raise serializers.ValidationError(detail="El número telefonico es incorrecto")
+        return telefono
+
     class Meta:
         model = Prestador
-        fields = ('id','nombres','primerApellido','segundoApellido'
-                  ,'tipoDocumento','numeroDocumento','telefono','email'
-                  ,'direccion'
-                  ,'municipio'
+        fields = (
+                  'telefono'
+                  ,'direccion' 
                   ,'fechaNacimiento'
-                  ,'user'
-                  ,'paquetes'
-                  ,'estudios'
-                  ,'servicios'
-                  ,'perfil'
-                  ,'calificacion'
-                  ,'imagePath'
-                  ,'profesion'
-                  ,'insignia'
-                  ,'zona'
-                  ,'zona_id')
+            
+                #    'id','nombres','primerApellido','segundoApellido'
+                #   ,'tipoDocumento','numeroDocumento','telefono','email'
+                #   ,'direccion'
+                #   ,'municipio'
+                #   ,'fechaNacimiento'
+                #   ,'user'
+                #   ,'paquetes'
+                #   ,'prestador_formacion'
+                #   ,'servicios'
+                #   ,'perfil'
+                #   ,'calificacion'
+                #   ,'imagePath'
+                #   ,'profesion'
+                #   ,'insignia'
+                #   ,'zona'
+                #   ,'zona_id'
+                  )
 
 # class PrestadorSerializer(serializers.Serializer):
 #     paquetes = serializers.PrimaryKeyRelatedField(many=True, queryset=Paquete.objects.all())

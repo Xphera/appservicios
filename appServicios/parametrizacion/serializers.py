@@ -7,7 +7,7 @@ class DepartamentoSerializer(serializers.HyperlinkedModelSerializer):
         model = Departamento
         fields = ('id','nombre')
 
-class MunicipioSerializer(serializers.HyperlinkedModelSerializer):
+class MunicipioSerializer(serializers.ModelSerializer):
     class Meta:
         model = Municipio
         fields = ('id','nombre','departamento')

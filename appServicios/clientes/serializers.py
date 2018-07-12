@@ -52,23 +52,6 @@ class  ClienteSerializer(serializers.Serializer):
 
 ''' --------------------------------------------------------------------------------------------------------------  '''
 
-class CambiarPasswordSerializer(serializers.Serializer):
-    password = serializers.CharField(max_length=30)
-    newpassword = serializers.CharField( max_length=30)
-    repeatnewpassword = serializers.CharField( max_length=30)
-
-    def validate(self,data):
-        if(data["newpassword"]!=data["repeatnewpassword"]):
-            raise serializers.ValidationError({"newpassword":"La nueva contraseña y su confirmación no coinciden"})
-        return data
-  
-    @transaction.atomic
-    def create(self, validated_data):
-        return validated_data
-
-    def update(self, instance, validated_data):
-        return instance
-
 class CambiarUsuarioValidarCodigoSerializer(serializers.Serializer):
     newusuario = serializers.EmailField()
     codigo = serializers.CharField()   

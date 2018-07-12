@@ -18,6 +18,10 @@ import time
 from clientes.serializers import ClienteSerializer
 from clientes.models import (Cliente)
 
+from utils.Utils.onesignal import Onesignal
+
+from servicios.logica.historico import (sesionHistorico,compraDetalleHistorico)
+
 
 class ZonaSerializer(GeoFeatureModelSerializer):
     id = serializers.IntegerField(read_only=True)
@@ -55,7 +59,6 @@ class ZonaSerializer(GeoFeatureModelSerializer):
             raise serializers.ValidationError("Error al guardar")  
         return validated_data  
 
-
 class CategoriaSerializer(serializers.HyperlinkedModelSerializer):
     servicios = serializers.PrimaryKeyRelatedField(many=True, queryset=Servicio.objects.all())
     class Meta:
@@ -67,15 +70,6 @@ class ServicioSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Servicio
         fields = ('id','categoria','categoria_id', 'nombre', 'detalle', 'imagePath','paquetes')
-
-
-# class ServicioSerializer(serializers.ModelSerializer):
-#     paquetes = serializers.PrimaryKeyRelatedField(many=True, queryset=Paquete.objects.all())
-#     nombre =  serializers.CharField(required=False)
-#     class Meta:
-#         model = Servicio
-#         fields = ('id','categoria','categoria_id', 'nombre', 'detalle', 'imagePath','paquetes')
-
 
 class PaqueteSerializer(serializers.ModelSerializer):
     class Meta:
@@ -105,7 +99,6 @@ class PrestadorSerializer(serializers.ModelSerializer):
                   ,'insignia'
                   ,'zona'
                   ,'zona_id') 
-
 
 class CompraSerializer(serializers.ModelSerializer):
     cliente = ClienteSerializer(read_only=True)
@@ -203,7 +196,6 @@ class CompraDetalleSerializer(serializers.ModelSerializer):
                     ,'compradetallesesiones'
                   )
 
-
 class CalificarSesionSerializer(serializers.Serializer):
     calificacion = serializers.IntegerField()
     comentario = serializers.CharField(allow_blank=True)
@@ -252,6 +244,7 @@ class ProgramarSesionSerializer(serializers.Serializer):
     longitud = serializers.FloatField()
     fechaInicio = serializers.DateTimeField()
     userId = serializers.IntegerField()
+    estado = EstadoCompraDetalleSesionSerializer(read_only=True)
 
     def validate(self,data):
         sesion = CompraDetalleSesion.objects.filter(
@@ -279,7 +272,7 @@ class ProgramarSesionSerializer(serializers.Serializer):
             if(sesion.estado.id == 2 or sesion.estado.id == 4):
                 # diferncia de entre fechas en minutos.
                 diff =(time.mktime(sesion.fechaInicio.timetuple())-time.mktime(datetime.now().timetuple()))/ 60         
-                if(diff <= 60):
+                if(diff < 60):
                     raise serializers.ValidationError({"sesion":"Solo se puede reprogramar sesión  una hora antes de la fecha de inicio."})                
         
             if(sesion.compraDetalle.estado.id != 1):
@@ -310,10 +303,27 @@ class ProgramarSesionSerializer(serializers.Serializer):
                 cds.estado= EstadoCompraDetalleSesion.objects.get(pk=2)            
                 cds.compraDetalle.sesionAgendadas = cds.compraDetalle.sesionAgendadas + 1
                 cds.compraDetalle.sesionPorAgendar = cds.compraDetalle.sesionPorAgendar - 1
-                cds.compraDetalle.save()
+                cds.compraDetalle.save()                 
             else:
                 cds.estado= EstadoCompraDetalleSesion.objects.get(pk=4)
             cds.save()
+            
+            # historico
+            cdsh = sesionHistorico()
+            cdsh.insertar(cds,validated_data["userId"]) 
+
+            # notificación.
+            o = Onesignal()
+            o.notificacionSesion(cds,"prestador")
+
+            validated_data['inicio'] = cds.inicio
+            validated_data['fin'] = cds.fin
+            validated_data['estado'] = cds.estado
+            validated_data['estadoId'] = cds.estado.id
+            validated_data['fechaInicio'] = cds.fechaInicio
+            validated_data['direccion'] = cds.direccion        
+            return validated_data
+
         except Exception as e: 
             print(e) 
             raise serializers.ValidationError("Error al guardar")  
@@ -328,6 +338,7 @@ class IniciarSesionSerializer(serializers.Serializer):
     estadoId = serializers.IntegerField(required=False)
 
     def validate(self,data):
+       
         sesion = CompraDetalleSesion.objects.filter(
             Q(estado_id=2)  | Q(estado_id=4),
             pk = data["sesionId"],
@@ -344,11 +355,17 @@ class IniciarSesionSerializer(serializers.Serializer):
         return data
 
     @transaction.atomic
-    def create(self, validated_data):
+    def create(self, validated_data):       
+
         cds = CompraDetalleSesion.objects.get(pk=validated_data["sesionId"])
         cds.inicio = datetime.now()
         cds.estado= EstadoCompraDetalleSesion.objects.get(pk=5)
         cds.save()
+        
+        # historico        
+        cdsh = sesionHistorico()
+        cdsh.insertar(cds,validated_data["userId"]) 
+        # output
         validated_data['inicio'] = cds.inicio
         validated_data['estado'] = cds.estado.estado
         validated_data['estadoId'] = cds.estado.id
@@ -395,15 +412,27 @@ class FinalizarSesionSerializer(serializers.Serializer):
                 novedad.compraDetalleSesion = cds
                 novedad.prestador = cds.compraDetalle.prestador
                 novedad.save()
+
+            cds.compraDetalle.sesionFinalizadas = cds.compraDetalle.sesionFinalizadas+1
+            cds.compraDetalle.sesionAgendadas = cds.compraDetalle.sesionAgendadas-1
+            cds.compraDetalle.save()
+            cds.save()
+            # historico
+            cdsh = sesionHistorico()
+            cdsh.insertar(cds,validated_data["userId"])
+            # finalizar paquete.
+            if(cds.compraDetalle.sesionFinalizadas == cds.compraDetalle.cantidadDeSesiones):
+                cds.compraDetalle.estado = EstadoCompraDetalle.objects.get(pk=2)
+                cds.compraDetalle.save()
+
+                # historico de paquete
+                cdh = compraDetalleHistorico()
+                cdh.insertar(cds.compraDetalle,validated_data["userId"])
         else:
-            cds.estado= EstadoCompraDetalleSesion.objects.get(pk=1)
-            cds.inicio = None
-            cds.fin = None
-            cds.fechaInicio = None
-            cds.titulo = None
-            cds.longitud = None
-            cds.latitud = None
-            cds.direccion=None
+
+            # cancelar sesion
+            cs = cancelarSesion()
+            cs.cancelar(cds,validated_data)
         
         validated_data['inicio'] = cds.inicio
         validated_data['fin'] = cds.fin
@@ -412,7 +441,9 @@ class FinalizarSesionSerializer(serializers.Serializer):
         validated_data['fechaInicio'] = cds.fechaInicio
         validated_data['direccion'] = cds.direccion
 
-        cds.save()
+        
+
+        
         return validated_data
 
 class CancelarSesionSerializer(serializers.Serializer):
@@ -421,25 +452,46 @@ class CancelarSesionSerializer(serializers.Serializer):
     inicio = serializers.DateTimeField(required=False)
     fin = serializers.DateTimeField(required=False)
     fechaInicio = serializers.DateTimeField(required=False)
-    estado = serializers.CharField(required=False)
-    estadoId = serializers.IntegerField(required=False)
+    estado = EstadoCompraDetalleSesionSerializer(read_only=True)
     direccion = serializers.CharField(required=False)
 
     def validate(self,data):
         sesion = CompraDetalleSesion.objects.filter(
             Q(estado_id=2)  | Q(estado_id=4),
-            pk = data["sesionId"],
-            compraDetalle__prestador__user_id = data["userId"] 
+            Q(compraDetalle__prestador__user_id = data["userId"])|Q(compraDetalle__compra__cliente__user_id = data["userId"]),
+            pk = data["sesionId"],             
             )
+
         if(sesion.count() == 0):
             raise serializers.ValidationError("No existe sesión a programar")
+
+        # aplica solo para cliente 
+        sesion = sesion.first()
+        if(sesion.compraDetalle.compra.cliente.user.id == data["userId"]):
+            # diferncia de entre fechas en minutos.
+            diff =(time.mktime(sesion.fechaInicio.timetuple())-time.mktime(datetime.now().timetuple()))/ 60         
+            if(diff < 60):
+                raise serializers.ValidationError("Solo se puede cancelar sesión una hora antes de la fecha de inicio.") 
+
         return data
 
     @transaction.atomic
     def create(self, validated_data):
-        cds = CompraDetalleSesion.objects.get(pk=validated_data["sesionId"])
+        cds = CompraDetalleSesion.objects.get(pk=validated_data["sesionId"])  
+        cs = cancelarSesion()
+        cs.cancelar(cds,validated_data)
 
-        cds.estado= EstadoCompraDetalleSesion.objects.get(pk=1)
+        validated_data['inicio'] = cds.inicio
+        validated_data['fin'] = cds.fin
+        validated_data['estado'] = cds.estado
+        validated_data['fechaInicio'] = cds.fechaInicio
+        validated_data['direccion'] = cds.direccion        
+        return validated_data
+
+# clase cancelar sesion
+class cancelarSesion(object):
+    def cancelar(self,cds,validated_data):
+        cds.estado= EstadoCompraDetalleSesion.objects.get(pk=6)
         cds.inicio = None
         cds.fin = None
         cds.fechaInicio = None
@@ -447,12 +499,19 @@ class CancelarSesionSerializer(serializers.Serializer):
         cds.longitud = None
         cds.latitud = None
         cds.direccion=None
-                
-        validated_data['inicio'] = cds.inicio
-        validated_data['fin'] = cds.fin
-        validated_data['estado'] = cds.estado.estado
-        validated_data['estadoId'] = cds.estado.id
-        validated_data['fechaInicio'] = cds.fechaInicio
-        validated_data['direccion'] = cds.direccion
         cds.save()
-        return validated_data
+
+         # historico        
+        cdsh = sesionHistorico()
+        cdsh.insertar(cds,validated_data["userId"])
+        # cambiar estado a por programar
+        cds.compraDetalle.sesionPorAgendar = cds.compraDetalle.sesionPorAgendar+1
+        cds.compraDetalle.sesionAgendadas = cds.compraDetalle.sesionAgendadas-1
+        cds.estado= EstadoCompraDetalleSesion.objects.get(pk=1)
+        cds.save()
+        cds.compraDetalle.save()
+
+        # historico        
+        cdsh = sesionHistorico()
+        cdsh.insertar(cds,validated_data["userId"])
+

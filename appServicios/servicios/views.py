@@ -105,7 +105,6 @@ class PaqueteActivoViewSet(APIView):
         #todo: contenplar la posiblidad que haya mas de un paquete activo
         try:
             qs = CompraDetalle.objects.get(compra__cliente__user = request.user,estado=1)
-            
             serializer = CompraDetalleSerializer(qs)
             return Response(serializer.data)
         except Exception as e:
@@ -116,7 +115,6 @@ class PaqueteActivoViewSet(APIView):
 class ProgramarSesionViewSet(APIView):
 
      def post(self,request,format=None):
-        
         fi = dateparser.parse(request.data["fecha"]) 
         data = request.data
         data["fechaInicio"]=  datetime(fi.year,fi.month,fi.day,fi.hour)
@@ -125,7 +123,7 @@ class ProgramarSesionViewSet(APIView):
 
         if serializer.is_valid():
             serializer.save()
-            return Response({"estado":"ok"})
+            return Response(serializer.data, status=status.HTTP_200_OK)
         else:
             return Response(serializer.errors, status= status.HTTP_400_BAD_REQUEST)
 
@@ -175,8 +173,7 @@ class IniciarSesionViewSet(APIView):
     
     def post(self, request,format=None):        
         data = request.data
-        data["userId"] = request.user.id
-
+        data["userId"] = request.user.id      
         serializer = IniciarSesionSerializer(data=data)
         if(serializer.is_valid()):
             serializer.save()
@@ -198,7 +195,7 @@ class FinalizarSesionViewSet(APIView):
         else:
             return Response(serializer.errors, status= status.HTTP_400_BAD_REQUEST) 
 
-@permission_classes((permissions.IsAuthenticated,EsPrestador,))
+@permission_classes((permissions.IsAuthenticated,))
 class CancelarSesionViewSet(APIView):
     
     def post(self, request,format=None):        
@@ -208,7 +205,12 @@ class CancelarSesionViewSet(APIView):
         serializer = CancelarSesionSerializer(data=data)
         if(serializer.is_valid()):
             serializer.save()
-            print(serializer.data)
             return Response(serializer.data, status=status.HTTP_200_OK)
         else:
             return Response(serializer.errors, status= status.HTTP_400_BAD_REQUEST)
+
+@permission_classes((permissions.IsAuthenticated,EsPrestador,))
+class CancelarPaqueteViewSet(APIView):
+    def post(self, request,format=None):
+        return Response({'hola':'yu!!!'}, status=status.HTTP_200_OK)
+
