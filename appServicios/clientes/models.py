@@ -31,7 +31,7 @@ class Cliente(models.Model):
 
 
 class Ubicacion(models.Model):
-    cliente = models.ForeignKey(to='Cliente', on_delete=models.PROTECT)
+    cliente = models.ForeignKey(to='Cliente', related_name='ubicaciones', on_delete=models.PROTECT)
     departamento = models.ForeignKey(to='parametrizacion.Departamento', on_delete=models.PROTECT, null=True)
     municipio = models.ForeignKey(to='parametrizacion.Municipio', on_delete=models.PROTECT,null=True)
     titulo = models.CharField(max_length=30,default="Sin Titulo")
@@ -84,9 +84,11 @@ class Sesion(models.Model):
 class Bolsa(models.Model):
     cliente = models.ForeignKey(to='Cliente', on_delete=models.PROTECT)
     compraDetalle = models.ForeignKey(to='servicios.CompraDetalle',related_name="bolsaCompraDetalle",null=True, on_delete=models.PROTECT)
+    compra = models.ForeignKey(to='servicios.Compra',related_name="bolsaCompra",null=True, on_delete=models.PROTECT)
     tipo = models.CharField(max_length=10)
     descripcion = models.TextField()
     valor    = models.FloatField()
+    activo    = models.BooleanField(default=1)
 
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)

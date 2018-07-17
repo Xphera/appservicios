@@ -22,6 +22,8 @@ from utils.Utils.onesignal import Onesignal
 
 from servicios.logica.historico import (sesionHistorico,compraDetalleHistorico)
 
+from  servicios.logica.paquete import Paquete as PaqueteLogica
+
 
 class ZonaSerializer(GeoFeatureModelSerializer):
     id = serializers.IntegerField(read_only=True)
@@ -76,11 +78,11 @@ class PaqueteSerializer(serializers.ModelSerializer):
         model = Paquete
         fields = ('id'
                   ,'servicio'
-                  ,'prestador'
+                #   ,'prestador'
                   ,'nombre'
                   ,'detalle'
                   ,'cantidadDeSesiones'
-                  ,'valor'
+                #   ,'valor'
                   )
 
 class PrestadorSerializer(serializers.ModelSerializer):
@@ -488,6 +490,38 @@ class CancelarSesionSerializer(serializers.Serializer):
         validated_data['direccion'] = cds.direccion        
         return validated_data
 
+class CancelarPaqueteSerializer(serializers.Serializer):
+    paqueteId = serializers.IntegerField()
+    userId = serializers.IntegerField()
+    motivoCancelacion =  serializers.CharField(max_length=200, min_length=10)
+
+    def validate(self,data):
+        paquete = CompraDetalle.objects.filter(
+            estado_id=1,
+            compra__cliente__user_id = data["userId"],
+            pk = data["paqueteId"],             
+            )
+
+        if(paquete.count() == 0):
+            raise serializers.ValidationError("No existe paquete a cancelar")
+
+        # si hay sesion en ejecuncion
+        paquete = paquete.first()
+        if(paquete.compradetallesesiones.filter(estado = 5).count()):
+            raise serializers.ValidationError("te encuentras en una sesión en ejecución por favor espera a terminarla para cancelar paquete.")
+        return data
+
+    @transaction.atomic
+    def create(self, validated_data):
+        p = PaqueteLogica()                
+        return p.cancelarPaquete(validated_data["userId"],validated_data["paqueteId"],validated_data["motivoCancelacion"])
+
+
+class RenovarPaqueteSerializer(serializers.Serializer):
+        compraDetalleId = serializers.IntegerField()
+        userId = serializers.IntegerField()
+         
+
 # clase cancelar sesion
 class cancelarSesion(object):
     def cancelar(self,cds,validated_data):
@@ -514,4 +548,3 @@ class cancelarSesion(object):
         # historico        
         cdsh = sesionHistorico()
         cdsh.insertar(cds,validated_data["userId"])
-

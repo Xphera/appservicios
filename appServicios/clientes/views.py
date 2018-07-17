@@ -3,7 +3,7 @@ from django.http import ( HttpResponse, JsonResponse, Http404)
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 
-from clientes.models import (Cliente, Ubicacion, MedioDePago)
+from clientes.models import (Cliente, Ubicacion, MedioDePago,Bolsa)
 from clientes.restModels import RegistroCliente
 from clientes.serializers import (
     ClienteSerializer,
@@ -14,7 +14,11 @@ from clientes.serializers import (
     ValidarEmailUsuarioSerializer,
     RegistrarInformacionBasicaSerializer,
     CambiarUsuarioSerializer,
-    CambiarUsuarioValidarCodigoSerializer)
+    CambiarUsuarioValidarCodigoSerializer,
+    BolsaSerializer)
+
+from servicios.models import CompraDetalle 
+from django.conf import settings   
 
 from rest_framework.decorators import api_view, permission_classes
 
@@ -149,7 +153,6 @@ class ClienteUbicaciones(APIView):
         else:
             return Response(ubicacionesSerializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-
 class ClienteUbicacion(APIView):
 
     permission_classes= (EsDueño,)
@@ -189,7 +192,6 @@ class ClienteUbicacion(APIView):
                 return Response({"estado": "error", "msj": str(e)}, status=status.HTTP_400_BAD_REQUEST)
              
 
-
 # VIEWS SETS PARA API NAVEGABLE
 
 class ClienteViewSet(viewsets.ModelViewSet):
@@ -206,3 +208,55 @@ class MediodepagoViewSet(viewsets.ModelViewSet):
     queryset = MedioDePago.objects.all()
     serializer_class = MedioDePagoSerializer
     permission_classes = (permissions.IsAuthenticated,)
+
+
+@permission_classes((permissions.IsAuthenticated,))
+class SaldoBolsaViewSet(APIView):
+    def get(self, request, format=None):
+        try:
+            cliente = Cliente.objects.get(user_id=request.user.id)
+            return Response({"saldo":cliente.saldoBolsa},status= status.HTTP_200_OK)    
+        except Cliente.DoesNotExist:
+            return Response("no existe cliente",status=status.HTTP_400_BAD_REQUEST)
+
+@permission_classes((permissions.IsAuthenticated,))
+class BolsaViewSet(APIView):
+    def get(self, request, format=None):
+        try:
+            bolsa = Bolsa.objects.filter(cliente__user_id=request.user.id).order_by("-created")
+            serializer = BolsaSerializer(bolsa,many=True)
+            return Response(
+                            {
+                                "saldo":bolsa.first().cliente.saldoBolsa,
+                                "movimientos":serializer.data
+                            },status= status.HTTP_200_OK) 
+        except Cliente.DoesNotExist:
+            return Response("no existe cliente",status=status.HTTP_400_BAD_REQUEST)
+
+@permission_classes((permissions.IsAuthenticated,))
+class MisPaqueteViewSet(APIView):
+    def get(self, request, format=None):
+        try:
+
+            output=[]
+            paquetes = CompraDetalle.objects.filter(compra__cliente__user_id=request.user.id).order_by("-created")
+            for paquete in paquetes:
+                output.append({
+                    'id':paquete.id,
+                    'paquete':paquete.nombre,
+                    'detalle':paquete.detalle,
+                    'prestador':{
+                        'nombreCompleto':paquete.prestador.nombres+' '+paquete.prestador.primerApellido+' '+paquete.prestador.segundoApellido,
+                        'imagePath': settings.MEDIA_URL+str(paquete.prestador.imagePath)
+                    },
+                    'valor':paquete.valor,
+                    'sesiones':paquete.cantidadDeSesiones,
+                    'estado':{
+                        'id':paquete.estado.id,
+                        'estado':paquete.estado.estado
+                    }
+                })
+            return Response(output,status= status.HTTP_200_OK) 
+        except Cliente.DoesNotExist:
+            return Response("no existe cliente",status=status.HTTP_400_BAD_REQUEST)
+        

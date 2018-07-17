@@ -1,7 +1,7 @@
 
 from rest_framework import serializers
 from parametrizacion.models import Sexo
-from clientes.models import (Cliente, Ubicacion, MedioDePago)
+from clientes.models import (Cliente, Ubicacion, MedioDePago,Bolsa)
 from servicios.models import Compra
 from parametrizacion.commonChoices import TIPO_DOCUMENTO_CHOICES
 from django.contrib.auth.models import User
@@ -292,9 +292,7 @@ class ClienteSerializer(serializers.ModelSerializer):
 #                   ,'tipoDocumento','numeroDocumento','telefono','email'
 #                   ,'fechaNacimiento')
 
-''' --------------------------------------------------------------------------------------------------------------  '''
-#SERIALIZER PARA API NAVEGABLE
-''' --------------------------------------------------------------------------------------------------------------  '''
+
 
 
 
@@ -303,7 +301,16 @@ class UbicacionSerializerApi(serializers.ModelSerializer):
         model = Ubicacion
         fields = ('id', 'cliente', 'titulo', 'direccion', 'latitud', 'longitud', 'imgPath','complemento')
 
+class BolsaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Bolsa
+        fields = ('id', 'tipo', 'descripcion', 'valor','created')       
 
+
+
+''' --------------------------------------------------------------------------------------------------------------  '''
+#SERIALIZER PARA API NAVEGABLE
+''' --------------------------------------------------------------------------------------------------------------  '''
 class UbicacionSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Ubicacion

@@ -11,7 +11,9 @@ from django.db.models import Q
 
 from parametrizacion.models import (EstadoCompraDetalleSesion)
 
-# Create your views here.
+from  servicios.logica.paquete import Paquete as PaqueteLogica
+
+
 from servicios.models import (
     Categoria, 
     Servicio, 
@@ -32,11 +34,15 @@ from servicios.serializers import (
     ZonaSerializer,
     IniciarSesionSerializer,
     FinalizarSesionSerializer,
-    CancelarSesionSerializer)
+    CancelarSesionSerializer,
+    CancelarPaqueteSerializer,
+    RenovarPaqueteSerializer)
 
 from prestadores.permissions import EsPrestador    
 
 from django.core.serializers import serialize
+
+# Create your views here.
 
 class CategoriaViewSet(viewsets.ModelViewSet):
     queryset = Categoria.objects.all()
@@ -209,8 +215,28 @@ class CancelarSesionViewSet(APIView):
         else:
             return Response(serializer.errors, status= status.HTTP_400_BAD_REQUEST)
 
-@permission_classes((permissions.IsAuthenticated,EsPrestador,))
+@permission_classes((permissions.IsAuthenticated,))
 class CancelarPaqueteViewSet(APIView):
     def post(self, request,format=None):
-        return Response({'hola':'yu!!!'}, status=status.HTTP_200_OK)
+        data = request.data
+        data["userId"] = request.user.id
+        serializer = CancelarPaqueteSerializer(data=data)
+        if(serializer.is_valid()):
+            serializer.save()
+            return Response({'ok'}, status=status.HTTP_200_OK)
+        else:
+            return Response(serializer.errors, status= status.HTTP_400_BAD_REQUEST)
+
+@permission_classes((permissions.IsAuthenticated,))
+class RenovarPaqueteViewSet(APIView):
+    def post(self, request,format=None):
+        data = request.data
+        data["userId"] = request.user.id
+        serializer = RenovarPaqueteSerializer(data=data)
+        if(serializer.is_valid()):
+            p = PaqueteLogica()     
+            renovar = p.renovarPaquete(data["userId"],data["compraDetalleId"])
+            return Response(renovar, status=status.HTTP_200_OK)
+        else:
+            return Response(serializer.errors, status= status.HTTP_400_BAD_REQUEST)
 

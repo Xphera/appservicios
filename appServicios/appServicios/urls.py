@@ -20,7 +20,7 @@ from django.urls import path, include
 #from servicios import urls as serviciosUrls
 from api.views import (UserViewSet)
 from clientes.views import (ClienteViewSet,UbicacionViewSet,MediodepagoViewSet)
-from prestadores.views import (PrestadorViewSet,)
+# from prestadores.views import (PrestadorViewSet,)
 from parametrizacion.views import (DepartamentoViewSet, MunicipioViewSet, SexoViewSet)
 from rest_framework.routers import DefaultRouter
 from rest_framework.authtoken import views as authTokenViews

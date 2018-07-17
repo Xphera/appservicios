@@ -94,4 +94,20 @@ class LogicaPrestador(object):
             if(q.zona.zona.intersects(pnt)):        
                 output.append(self.customSerializer(q,servicioId))
         return output
+
+    def geolocalizarPrestador(self,longitud,latitud,prestadorId):
+        output = False
+        pnt = GEOSGeometry('POINT('+str(longitud)+' '+str(latitud)+')')
+
+        try:
+            queryset=Prestador.objects.get(
+                        zona__zona__intersects=(pnt),
+                        pk = prestadorId
+                        )
+        except Prestador.DoesNotExist:  
+            return output         
+
+        if(queryset.zona.zona.intersects(pnt)):        
+            output =True 
+        return output    
   

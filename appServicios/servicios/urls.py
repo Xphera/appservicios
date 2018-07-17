@@ -38,6 +38,7 @@ urlpatterns = [
     path('FinalizarSesion/', FinalizarSesionViewSet.as_view()),
     path('CancelarSesion/', CancelarSesionViewSet.as_view()),
     path('CancelarPaquete/', CancelarPaqueteViewSet.as_view()),
+    path('RenovarPaquete/', RenovarPaqueteViewSet.as_view()),
     
 ]
 

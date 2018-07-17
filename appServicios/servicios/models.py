@@ -31,14 +31,13 @@ class Servicio(models.Model):
 
 class Paquete(models.Model):
     servicio = models.ForeignKey(to='Servicio',related_name="paquetes", on_delete=models.PROTECT)
-    # prestador = models.ForeignKey(to='prestadores.Prestador',related_name="paquetes", on_delete=models.PROTECT)
     nombre = models.CharField(max_length=20, unique=True, null=False)
     detalle = models.CharField(max_length=150, null=False)
     cantidadDeSesiones = models.IntegerField()
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
-    # valor = models.FloatField()
     duracionSesion = models.IntegerField()
+    is_active = models.BooleanField(default=1)
 
     def __str__(self):
         return self.nombre
@@ -68,8 +67,9 @@ class CompraDetalle(models.Model):
     sesionFinalizadas    = models.IntegerField(blank=True,null=True,default=0)
     sesionAgendadas    = models.IntegerField(blank=True,null=True,default=0)
     sesionPorAgendar    = models.IntegerField(blank=True,null=True,default=0)
-    duracionSesion = models.IntegerField()
+    duracionSesion = models.IntegerField() 
     zona = models.PolygonField(blank=True,null=True)
+    motivoCancelacion= models.CharField(blank=True,max_length=200,null=True)
 
     created  = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
@@ -95,6 +95,7 @@ class CompraDetalleSesion(models.Model):
     fechaFin = models.DateTimeField(null=True)
     inicio = models.DateTimeField(null=True)
     fin = models.DateTimeField(null=True)
+    
 
     created  = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)

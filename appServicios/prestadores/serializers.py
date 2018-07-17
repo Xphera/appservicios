@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from prestadores.models import (Prestador,Disponibilidad,Formacion)
 from servicios.models import (Paquete,Servicio,CompraDetalleSesion,Zona)
-from servicios.serializers import (ZonaSerializer,ServicioSerializer)
+# from servicios.serializers import (ServicioSerializer)
 from parametrizacion.serializers import MunicipioSerializer
 from django.db import transaction
 from datetime import date
@@ -45,35 +45,6 @@ class PrestadorSerializer(serializers.ModelSerializer):
                 #   ,'zona'
                 #   ,'zona_id'
                   )
-
-# class PrestadorSerializer(serializers.Serializer):
-#     paquetes = serializers.PrimaryKeyRelatedField(many=True, queryset=Paquete.objects.all())
-#     # servicios = serializers.PrimaryKeyRelatedField(many=True, queryset=Servicio.objects.all())
-#     servicios = serializers.PrimaryKeyRelatedField(queryset=Servicio.objects.all(), write_only=True,source='serviciosx')
-#     servicios_id = ServicioSerializer(read_only=True)
-#     # zona = ZonaSerializer(read_only=True)
-#     # zona_id = serializers.PrimaryKeyRelatedField(queryset=Zona.objects.all(), write_only=True, source='zonas')
-#     class Meta:
-#         model = Prestador
-#         fields = ('id','nombres','primerApellido','segundoApellido'
-#                   ,'tipoDocumento','numeroDocumento','telefono','email'
-#                   ,'direccion'
-#                   ,'municipio'
-#                   ,'fechaNacimiento'
-#                   ,'user'
-#                   ,'paquetes'
-#                   ,'servicios'
-#                   ,'servicios_id'
-#                   ,'perfil'
-#                   ,'calificacion'
-#                   ,'imagePath'
-#                   ,'profesion'
-#                   ,'insignia'
-#                 #   ,'zona'
-#                 #   ,'zona_id'
-#                   )
-
-
 
 class programacionSegunSesionSerializer(serializers.Serializer):
     sesionId = serializers.IntegerField()
