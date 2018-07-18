@@ -479,7 +479,8 @@ class CancelarSesionSerializer(serializers.Serializer):
 
     @transaction.atomic
     def create(self, validated_data):
-        cds = CompraDetalleSesion.objects.get(pk=validated_data["sesionId"])  
+        cds = CompraDetalleSesion.objects.get(pk=validated_data["sesionId"])
+         
         cs = cancelarSesion()
         cs.cancelar(cds,validated_data)
 
@@ -525,6 +526,7 @@ class RenovarPaqueteSerializer(serializers.Serializer):
 # clase cancelar sesion
 class cancelarSesion(object):
     def cancelar(self,cds,validated_data):
+        cdsn = cds.clone() 
         cds.estado= EstadoCompraDetalleSesion.objects.get(pk=6)
         cds.inicio = None
         cds.fin = None
@@ -538,6 +540,17 @@ class cancelarSesion(object):
          # historico        
         cdsh = sesionHistorico()
         cdsh.insertar(cds,validated_data["userId"])
+        
+        #notificación.
+        o = Onesignal()
+        cdsn.estado = cds.estado
+        
+        if(cdsn.compraDetalle.compra.cliente.user.id == validated_data["userId"]):
+            o.notificacionSesion(cdsn,"prestador")
+        else:
+            print('notifica cliente')
+        
+
         # cambiar estado a por programar
         cds.compraDetalle.sesionPorAgendar = cds.compraDetalle.sesionPorAgendar+1
         cds.compraDetalle.sesionAgendadas = cds.compraDetalle.sesionAgendadas-1
@@ -548,3 +561,4 @@ class cancelarSesion(object):
         # historico        
         cdsh = sesionHistorico()
         cdsh.insertar(cds,validated_data["userId"])
+       

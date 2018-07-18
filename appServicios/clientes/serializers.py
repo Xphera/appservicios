@@ -4,7 +4,7 @@ from parametrizacion.models import Sexo
 from clientes.models import (Cliente, Ubicacion, MedioDePago,Bolsa)
 from servicios.models import Compra
 from parametrizacion.commonChoices import TIPO_DOCUMENTO_CHOICES
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User,Group
 from django.db import DatabaseError, transaction, IntegrityError
 
 from utils.Utils.CodigosUtil import CodeFactoryUtil
@@ -124,7 +124,8 @@ class RegistroUsuarioSerializer(serializers.Serializer):
         user.is_staff = False
         user.email = validated_data["email"]
         user.save()
-
+        group = Group.objects.get(name='cliente')
+        group.user_set.add(user)
 
         cliente = Cliente()
         cliente.email = user.email

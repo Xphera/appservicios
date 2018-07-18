@@ -2,6 +2,7 @@ from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
 from prestadores.models import Prestador
+from clientes.models import Cliente
 
 class CustomAuthToken(ObtainAuthToken):
 
@@ -13,12 +14,12 @@ class CustomAuthToken(ObtainAuthToken):
         token, created = Token.objects.get_or_create(user=user)
        
         if(user.groups.filter(name='cliente').exists()):
-            print('cliente')
-        if(user.groups.filter(name='administrador').exists()):
+            c = Cliente.objects.get(user=user)
+            fullname=str(c.nombres)+' '+str(c.primerApellido)+' '+str(c.segundoApellido)
+        elif(user.groups.filter(name='administrador').exists()):
             print('administrador')
         else:
             p = Prestador.objects.get(user=user)
-            fullname=''
             fullname=p.nombres+' '+p.primerApellido+' '+p.segundoApellido
 
         return Response({

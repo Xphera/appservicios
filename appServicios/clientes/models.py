@@ -1,6 +1,7 @@
 from django.db import models
 from parametrizacion.commonChoices import (TIPO_DOCUMENTO_CHOICES, FRANQUICIAS_CHOICES, MEDIOS_DE_PAGO_CHOICES, ESTADO_SESION_CHOICES)
 from servicios.models import Compra
+from utils.Utils import Utils
 
 from django.contrib.auth.models import User
 # Create your models here.
@@ -24,7 +25,7 @@ class Cliente(models.Model):
     modified = models.DateTimeField(auto_now=True)
 
     def nombreCompleto(self):
-        return str((self.nombres,self.primerApellido,self.segundoApellido))
+        return Utils.replaceNone(self.nombres)+' '+Utils.replaceNone(self.primerApellido)+' '+Utils.replaceNone(self.segundoApellido)
 
     def __str__(self):
         return str({"nombre":self.nombreCompleto(),"email":self.email})

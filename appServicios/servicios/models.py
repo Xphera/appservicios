@@ -1,3 +1,4 @@
+from copy import deepcopy
 # from django.db import models
 from django.contrib.gis.db import models
 
@@ -100,6 +101,10 @@ class CompraDetalleSesion(models.Model):
     created  = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
 
+    def clone(self):
+        newo = deepcopy(self)
+        newo.pk = None
+        return newo
     class Meta:
         verbose_name_plural = "CompraDetallesSesiones"
         ordering = ('fechaInicio',)

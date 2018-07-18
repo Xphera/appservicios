@@ -1,5 +1,6 @@
 
 import onesignal as onesignal_sdk
+from utils.Utils import Utils
 
 class Onesignal(object):
     def __init__(self):
@@ -19,7 +20,6 @@ class Onesignal(object):
         print(onesignal_response.status_code)
         print(onesignal_response.json())
 
-
     def fitro(self,userId,tipo):
         return [
                 {"field": "tag", "key": "userId", "relation": "=", "value": userId}, 
@@ -30,19 +30,20 @@ class Onesignal(object):
     def notificacionSesion(self,sesion,tipo):        
         if(sesion.estado_id == 2):
             titulo="Sesión programada"
-        if(sesion.estado_id == 4):
+        elif(sesion.estado_id == 4):
             titulo="Sesión reprogramada"
-
+        elif(sesion.estado_id == 6):
+            titulo="Sesión cancelada"    
+ 
         if(tipo=="prestador"):
             userId = sesion.compraDetalle.prestador.user.id
             filtro = self.fitro(userId,"prestador")
-            cliente = sesion.compraDetalle.compra.cliente.nombres+' '+sesion.compraDetalle.compra.cliente.primerApellido+' '+sesion.compraDetalle.compra.cliente.segundoApellido 
-
-            mensaje = "Cliente "+cliente+" cúando "+ str(sesion.fechaInicio) +"  donde "+sesion.direccion+" "+sesion.complemento
-
+            mensaje = "Cliente "+ sesion.compraDetalle.compra.cliente.nombreCompleto() +" cúando "+ Utils.replaceNone(sesion.fechaInicio) +"  donde "+Utils.replaceNone(sesion.direccion)+" "+Utils.replaceNone(sesion.complemento)    
         elif(tipo=="cliente"): 
             userId = sesion.compraDetalle.compra.user.id 
         else:
             print("algo")
 
         self.enviarNotificacion(filtro,mensaje,titulo,{'sesionId':sesion.id,'tipo':'detalleSesion'})
+
+

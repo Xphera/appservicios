@@ -1,7 +1,6 @@
 import re
 from datetime import datetime, date, timedelta
 
-
 def es_alfanumerico(valor,espacios = False):
     """
     Calcula si una cadena de caracteres contine unicamente caracteres alfanumericos.

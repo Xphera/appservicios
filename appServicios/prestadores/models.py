@@ -3,6 +3,7 @@ from django.contrib.gis.db import models
 from parametrizacion.commonChoices import TIPO_DOCUMENTO_CHOICES
 from parametrizacion.models import Municipio
 from django.contrib.auth.models import User
+from utils.Utils import Utils
 
 # Create your models here.
 
@@ -38,6 +39,9 @@ class Prestador(models.Model):
 
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
+
+    def nombreCompleto(self):
+        return Utils.replaceNone(self.nombres)+' '+Utils.replaceNone(self.primerApellido)+' '+Utils.replaceNone(self.segundoApellido)
 
     class Meta:
         verbose_name_plural = "prestadores"
