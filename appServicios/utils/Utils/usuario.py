@@ -20,11 +20,12 @@ class Usuario(object):
             
             request.user.set_password(serializer.data.get("newpassword"))
             request.user.save()
-            Token.objects.get(user=request.user).delete()
-            token = Token.objects.create(user=request.user)
-            output["estado"]=True
-            output["token"]=token.key
-            return output
+            return self.infoToken(request.user)
+            # Token.objects.get(user=request.user).delete()
+            # token = Token.objects.create(user=request.user)
+            # output["estado"]=True
+            # output["token"]=token.key
+            # return output
         else:
             output["estado"]=False
             output["error"]=serializer.errors
@@ -42,7 +43,7 @@ class Usuario(object):
             else:
                 serializer.save()
                 output["estado"]=True
-                return output
+            return output
         else:
             output["estado"]=False
             output["error"]=serializer.errors
@@ -55,11 +56,12 @@ class Usuario(object):
         serializer = CambiarUsuarioValidarCodigoSerializer(data=data)
         if serializer.is_valid():
             serializer.save()
-            Token.objects.get(user=request.user).delete()
-            token = Token.objects.create(user=request.user)
-            output["estado"]=True
-            output["token"]=token.key
-            return output
+            return self.infoToken(request.user)
+            # Token.objects.get(user=request.user).delete()
+            # token = Token.objects.create(user=request.user)
+            # output["estado"]=True
+            # output["token"]=token.key
+            # return output
         else:
             output["estado"]=False
             output["error"]=serializer.errors
@@ -83,20 +85,56 @@ class Usuario(object):
         data=request.data
         serializer = RestablecerPasswordValidaCodigo(data=data)
         if serializer.is_valid():
-            usuario = User.objects.get(username=serializer.data.get("usuario"))
-            usuario.set_password(serializer.data.get("password"))
-            usuario.save()
-            Token.objects.get(user=usuario).delete()
-            token = Token.objects.create(user=usuario)
-            output["estado"]=True
-            output["token"]=token.key
-            return output       
+            user = User.objects.get(username=serializer.data.get("usuario"))
+            user.set_password(serializer.data.get("password"))
+            user.save()
+            return self.infoToken(user)
+            # Token.objects.get(user=user).delete()
+            # token = Token.objects.create(user=user)
+            
+            # if(user.groups.filter(name='cliente').exists()):
+            #     c = Cliente.objects.get(user=user)
+            #     fullname=str(c.nombres)+' '+str(c.primerApellido)+' '+str(c.segundoApellido)
+            # elif(user.groups.filter(name='administrador').exists()):
+            #     print('administrador')
+            # else:
+            #     p = Prestador.objects.get(user=user)
+            #     fullname=p.nombres+' '+p.primerApellido+' '+p.segundoApellido
+            # output["estado"]=True
+            # output["token"]=token.key
+            # output["user_id"]=user.pk
+            # output["email"]=user.email
+            # output["fullname"]=fullname
+            # return output       
         else:
             output["estado"]=False
             output["error"]=serializer.errors
             return output
 
+    def infoToken(self,user):
+        output={}
+        try:
+            Token.objects.get(user=user).delete()
+        except Exception as e:
+            print(e)
+        
+        token = Token.objects.create(user=user)
+            
+        if(user.groups.filter(name='cliente').exists()):
+            c = Cliente.objects.get(user=user)
+            fullname= c.nombreCompleto()
+        elif(user.groups.filter(name='administrador').exists()):
+            print('administrador')
+        else:
+            p = Prestador.objects.get(user=user)
+            fullname=c.nombreCompleto()
 
+        output["estado"]=True
+        output["token"]=token.key
+        output["user_id"]=user.pk
+        output["email"]=user.email
+        output["fullname"]=fullname
+        return output       
 
 # serializadores....................................
 class CambiarPasswordSerializer(serializers.Serializer):
@@ -153,7 +191,7 @@ class CambiarUsuarioSerializer(serializers.Serializer):
 
     def validate_newusuario(self,newusuario):
         if(User.objects.filter(username=newusuario).exists()):
-            raise serializers.ValidationError({"usuario":["Usuario ya registrado"]})
+            raise serializers.ValidationError("Usuario ya registrado")
         return newusuario
 
     @transaction.atomic

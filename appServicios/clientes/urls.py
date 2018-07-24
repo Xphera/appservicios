@@ -31,6 +31,7 @@ urlpatterns = [
     path('SaldoBolsa/',views.SaldoBolsaViewSet.as_view()),
     path('Bolsa/',views.BolsaViewSet.as_view()),
     path('MisPaquetes/',views.MisPaqueteViewSet.as_view()),
+    path('RestablecerPassword/', views.RestablecerPassword.as_view()),
 ]
 
 urlpatterns = format_suffix_patterns(urlpatterns)

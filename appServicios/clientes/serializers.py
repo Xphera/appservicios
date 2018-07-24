@@ -157,12 +157,12 @@ class ValidarEmailUsuarioSerializer(serializers.Serializer):
 
     def validate_email(self,email):
         if ( not User.objects.filter(username=email).exists()):
-            raise serializers.ValidationError(detail="Correo electronico no esta registrado", code=500)
+            raise serializers.ValidationError(detail="Correo electronico no esta registrado")
         return email
 
     def validate(self,data):
         if (CodeFactoryUtil.codigoValidacionEmail(data["email"])!=data["codigoValidacion"]):
-            raise serializers.ValidationError(detail="El codigo de validacion no corresponde", code=500)
+            raise serializers.ValidationError(detail="El codigo de validacion no corresponde")
         return data
 
 

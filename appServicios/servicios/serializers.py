@@ -22,7 +22,8 @@ from utils.Utils.onesignal import Onesignal
 
 from servicios.logica.historico import (sesionHistorico,compraDetalleHistorico)
 
-from  servicios.logica.paquete import Paquete as PaqueteLogica
+from servicios.logica.paquete import Paquete as PaqueteLogica
+from servicios.logica.chat import Chat
 
 
 class ZonaSerializer(GeoFeatureModelSerializer):
@@ -521,7 +522,34 @@ class CancelarPaqueteSerializer(serializers.Serializer):
 class RenovarPaqueteSerializer(serializers.Serializer):
         compraDetalleId = serializers.IntegerField()
         userId = serializers.IntegerField()
-         
+
+
+
+
+class ChatSerializer(serializers.Serializer):
+    sesionId = serializers.IntegerField()
+    userId = serializers.IntegerField()
+    mensaje =  serializers.CharField(max_length=250)
+
+    def validate(self,data):
+        sesion = CompraDetalleSesion.objects.filter(
+            Q(estado_id=2)  | Q(estado_id=4),
+            Q(compraDetalle__prestador__user_id = data["userId"])|Q(compraDetalle__compra__cliente__user_id = data["userId"]),
+            pk = data["sesionId"],             
+            )
+
+        if(sesion.count() == 0):
+            raise serializers.ValidationError("No existe sesión")
+
+        return data
+
+    @transaction.atomic
+    def create(self, validated_data):
+        c = Chat()                
+        return c.guardarMensaje(validated_data["mensaje"],validated_data["userId"],validated_data["sesionId"])
+
+
+
 
 # clase cancelar sesion
 class cancelarSesion(object):
@@ -561,4 +589,5 @@ class cancelarSesion(object):
         # historico        
         cdsh = sesionHistorico()
         cdsh.insertar(cds,validated_data["userId"])
-       
+
+

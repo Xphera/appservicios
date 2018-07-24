@@ -32,6 +32,25 @@ from utils.Utils.usuario import Usuario
 
 from clientes.permissions import EsDueño
 
+from utils.Utils.usuario import Usuario
+
+@permission_classes((permissions.AllowAny,))
+class RestablecerPassword(APIView):
+   
+    def post(self, request,format=None):
+        output = Usuario().restablecerPassword(request)
+        if(output["estado"]):
+            return Response({"estado":"ok"}, status=status.HTTP_202_ACCEPTED)
+        else:    
+            return Response(output["error"], status= status.HTTP_400_BAD_REQUEST)
+
+    def put(self, request,format=None):
+
+        output = Usuario().restablecerPasswordValidaCodigo(request)
+        if(output["estado"]):
+            return Response({"estado":"ok","token": output}, status=status.HTTP_202_ACCEPTED)
+        else:    
+            return Response(output["error"], status= status.HTTP_400_BAD_REQUEST)
 
 @permission_classes((permissions.AllowAny,))
 class RegistroClienteList(APIView):
@@ -47,17 +66,17 @@ class RegistroClienteList(APIView):
 @permission_classes((permissions.AllowAny,))
 class ValidarEmailCode(APIView):
     def post(self, request,format=None):
-
-        veus =  ValidarEmailUsuarioSerializer(data=request.data)
-
-        if veus.is_valid():
+        serializer =  ValidarEmailUsuarioSerializer(data=request.data)
+        if serializer.is_valid():
             try:
-                veus.save()
-                return Response({"estado":"ok"}, status=status.HTTP_202_ACCEPTED)
-            except(e):
+                serializer.save()
+                user = User.objects.get(email=request.data["email"])
+                u=Usuario()
+                return Response(u.infoToken(user), status=status.HTTP_202_ACCEPTED)
+            except Exception as e:
                 return Response({"estado": "error","msj":str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-        return Response(veus.errors, status= status.HTTP_400_BAD_REQUEST)
+        return Response(serializer.errors, status= status.HTTP_400_BAD_REQUEST)
 
 @permission_classes((permissions.IsAuthenticated,))
 class CambiarPassword(APIView):
@@ -66,7 +85,7 @@ class CambiarPassword(APIView):
 
         output = Usuario().cambioContrenia(request)
         if(output["estado"]):
-            return Response({"estado":"ok","token": output["token"]}, status=status.HTTP_202_ACCEPTED)
+            return Response(output, status=status.HTTP_202_ACCEPTED)
         else:    
             return Response(output["error"], status= status.HTTP_400_BAD_REQUEST) 
      
@@ -77,7 +96,7 @@ class CambiarUsuarioValidarCodigo(APIView):
     def put(self, request,format=None):
         output = Usuario().cambioUsuarioValidarCodigo(request)
         if(output["estado"]):
-            return Response({"estado":"ok","token": output["token"]}, status=status.HTTP_202_ACCEPTED)
+            return Response(output, status=status.HTTP_202_ACCEPTED)
         else:    
             return Response(output["error"], status= status.HTTP_400_BAD_REQUEST)
 
@@ -90,6 +109,7 @@ class CambiarUsuario(APIView):
         if(output["estado"]):
             return Response({"estado":"ok"}, status=status.HTTP_202_ACCEPTED)
         else:    
+            print(output["error"])
             return Response(output["error"], status= status.HTTP_400_BAD_REQUEST)        
 
 
@@ -225,9 +245,12 @@ class BolsaViewSet(APIView):
         try:
             bolsa = Bolsa.objects.filter(cliente__user_id=request.user.id).order_by("-created")
             serializer = BolsaSerializer(bolsa,many=True)
+            saldo = 0
+            if(bolsa.first()):
+                saldo = bolsa.first().cliente.saldoBolsa
             return Response(
                             {
-                                "saldo":bolsa.first().cliente.saldoBolsa,
+                                "saldo":saldo,
                                 "movimientos":serializer.data
                             },status= status.HTTP_200_OK) 
         except Cliente.DoesNotExist:

@@ -23,5 +23,5 @@ class BolsaCliente(object):
         bolsa.cliente.save()
         if(bolsa.cliente.saldoBolsa==0):
             Bolsa.objects.filter(cliente = bolsa.cliente ).update(activo=0)
-
+    
 

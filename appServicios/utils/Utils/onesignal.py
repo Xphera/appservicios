@@ -27,7 +27,8 @@ class Onesignal(object):
   	            {"field": "tag", "key": "tipo", "relation": "=", "value": tipo}
             ]
 
-    def notificacionSesion(self,sesion,tipo):        
+    def notificacionSesion(self,sesion,tipo):
+             
         if(sesion.estado_id == 2):
             titulo="Sesión programada"
         elif(sesion.estado_id == 4):
@@ -46,4 +47,16 @@ class Onesignal(object):
 
         self.enviarNotificacion(filtro,mensaje,titulo,{'sesionId':sesion.id,'tipo':'detalleSesion'})
 
-
+    def notificacionChat(self,sesionChat,tipo):
+        sesion = sesionChat.compraDetalleSesion
+        titulo = "Mensaje Sesión"
+        mensaje =  sesionChat.mensaje
+        if(tipo=="prestador"):
+            userId = sesion.compraDetalle.prestador.user.id
+            filtro = self.fitro(userId,"prestador")
+        elif(tipo=="cliente"): 
+            userId = sesion.compraDetalle.compra.user.id 
+            filtro = self.fitro(userId,"cliente")
+        else:
+            print("algo")            
+        self.enviarNotificacion(filtro,mensaje,titulo,{'sesionId':sesion.id,'tipo':'sesionChat','mensaje':mensaje})

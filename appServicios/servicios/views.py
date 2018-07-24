@@ -13,6 +13,8 @@ from parametrizacion.models import (EstadoCompraDetalleSesion)
 
 from  servicios.logica.paquete import Paquete as PaqueteLogica
 
+from  servicios.logica.chat import Chat
+
 
 from servicios.models import (
     Categoria, 
@@ -36,7 +38,8 @@ from servicios.serializers import (
     FinalizarSesionSerializer,
     CancelarSesionSerializer,
     CancelarPaqueteSerializer,
-    RenovarPaqueteSerializer)
+    RenovarPaqueteSerializer,
+    ChatSerializer)
 
 from prestadores.permissions import EsPrestador    
 
@@ -240,3 +243,17 @@ class RenovarPaqueteViewSet(APIView):
         else:
             return Response(serializer.errors, status= status.HTTP_400_BAD_REQUEST)
 
+@permission_classes((permissions.IsAuthenticated,))
+class SesionChat(APIView):
+    def post(self, request,format=None):
+        data = request.data
+        data["userId"] = request.user.id 
+        serializer = ChatSerializer(data=data)
+        if(serializer.is_valid()):
+            serializer.save()
+            return Response({'ok'}, status=status.HTTP_200_OK)
+        else:
+            return Response(serializer.errors, status= status.HTTP_400_BAD_REQUEST)
+    def get(self, request,pk,format=None):
+        c= Chat()
+        return Response(c.obtenerMensaje(request.user.id,pk), status=status.HTTP_200_OK)

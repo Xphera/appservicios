@@ -64,7 +64,8 @@ class LogicaPrestador(object):
                        'paquete': cds.compraDetalle.nombre,
                        'comentario': cds.comentario,
                        'imagePath':  settings.MEDIA_URL+str(cds.compraDetalle.compra.cliente.imagePath),
-                       'cliente': cds.compraDetalle.compra.cliente.nombres+' '+cds.compraDetalle.compra.cliente.primerApellido+' '+cds.compraDetalle.compra.cliente.segundoApellido,
+                       'cliente': cds.compraDetalle.compra.cliente.nombreCompleto(),
+                    #    'cliente': cds.compraDetalle.compra.cliente.nombres+' '+cds.compraDetalle.compra.cliente.primerApellido+' '+cds.compraDetalle.compra.cliente.segundoApellido,
                     })
     
                 response_data['comentarios'] = comentarios

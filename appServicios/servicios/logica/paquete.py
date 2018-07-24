@@ -33,7 +33,8 @@ class Paquete(object):
             bolsa.valor = vb
             bolsa.compraDetalle = cd
             bolsa.cliente = cd.compra.cliente            
-            bolsa.descripcion = "cancelación de paquete "+cd.nombre+" prestador "+cd.prestador.nombres+" "+cd.prestador.primerApellido+" "+cd.prestador.segundoApellido
+            bolsa.descripcion = "cancelación de paquete "+cd.nombre+" prestador "+cd.prestador.nombreCompleto()
+            # bolsa.descripcion = "cancelación de paquete "+cd.nombre+" prestador "+cd.prestador.nombres+" "+cd.prestador.primerApellido+" "+cd.prestador.segundoApellido
             bc=BolsaCliente()
             bc.entrada(bolsa)
             

@@ -172,4 +172,13 @@ class Zona(models.Model):
     modified = models.DateTimeField(auto_now=True)
     
     def __str__(self):
-        return self.name           
+        return self.name     
+
+class SesionChat(models.Model):
+    mensaje = models.TextField(max_length=250)
+    compraDetalleSesion  = models.ForeignKey(to='CompraDetalleSesion', related_name='compraDetalleSesionesChat', on_delete=models.PROTECT)
+    usuario = models.ForeignKey(to=User, related_name='chatUsuario', on_delete=models.PROTECT, default=None, null=False)
+    created  = models.DateTimeField(auto_now_add=True)
+    modified = models.DateTimeField(auto_now=True)
+    def __str__(self):
+        return self.mensaje              
