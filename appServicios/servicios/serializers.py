@@ -367,7 +367,13 @@ class IniciarSesionSerializer(serializers.Serializer):
         
         # historico        
         cdsh = sesionHistorico()
-        cdsh.insertar(cds,validated_data["userId"]) 
+        cdsh.insertar(cds,validated_data["userId"])
+
+
+        # notificación
+        o = Onesignal()
+        o.notificacionSesion(cds,"cliente")
+            
         # output
         validated_data['inicio'] = cds.inicio
         validated_data['estado'] = cds.estado.estado
@@ -427,15 +433,19 @@ class FinalizarSesionSerializer(serializers.Serializer):
             if(cds.compraDetalle.sesionFinalizadas == cds.compraDetalle.cantidadDeSesiones):
                 cds.compraDetalle.estado = EstadoCompraDetalle.objects.get(pk=2)
                 cds.compraDetalle.save()
-
                 # historico de paquete
                 cdh = compraDetalleHistorico()
                 cdh.insertar(cds.compraDetalle,validated_data["userId"])
+                
+            # notificación
+            o = Onesignal()
+            o.notificacionSesion(cds,"cliente")
         else:
-
             # cancelar sesion
             cs = cancelarSesion()
             cs.cancelar(cds,validated_data)
+        
+       
         
         validated_data['inicio'] = cds.inicio
         validated_data['fin'] = cds.fin
@@ -555,6 +565,7 @@ class ChatSerializer(serializers.Serializer):
 class cancelarSesion(object):
     def cancelar(self,cds,validated_data):
         cdsn = cds.clone() 
+        cdsn.id = cds.id
         cds.estado= EstadoCompraDetalleSesion.objects.get(pk=6)
         cds.inicio = None
         cds.fin = None
@@ -572,11 +583,11 @@ class cancelarSesion(object):
         #notificación.
         o = Onesignal()
         cdsn.estado = cds.estado
-        
+        print(cdsn)
         if(cdsn.compraDetalle.compra.cliente.user.id == validated_data["userId"]):
             o.notificacionSesion(cdsn,"prestador")
         else:
-            print('notifica cliente')
+            o.notificacionSesion(cdsn,"cliente")
         
 
         # cambiar estado a por programar

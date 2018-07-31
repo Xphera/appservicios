@@ -17,6 +17,7 @@ from servicios.serializers import (
     CompraDetalleSesioneSerializer,
 )
 
+
 from .logica.disponibilidad import Disponibilidad
 from .logica.sesion import Sesion
 from .logica.logicaPrestador import LogicaPrestador
@@ -144,7 +145,7 @@ class programacionSegunSesionViewSet(APIView):
 class disponibilidadMesSegunSesionViewSet(APIView):
     def post(self, request,format=None):
         data= request.data
-        data["usuarioId"]=request.user.id
+        data["usuarioId"]=request.user.id        
         serializer = disponibilidadMesSerializer(data=data)
         if serializer.is_valid():
             disponibilidad = Disponibilidad()
@@ -206,12 +207,4 @@ class SesionIniciadaViewSet(ListAPIView):
     def get(self, request,format=None):
         sesiones = Sesion()   
         serializer = CompraDetalleSesioneSerializer(sesiones.iniciada(request.user.id),many=True)
-        return Response(serializer.data)
-
-@permission_classes((permissions.IsAuthenticated,EsPrestador,))
-class SesionDetalleViewSet(ListAPIView):
-    
-    def get(self, request,id,format=None):
-        sesiones = Sesion()   
-        serializer = CompraDetalleSesioneSerializer(sesiones.detalle(request.user.id,id))
         return Response(serializer.data)

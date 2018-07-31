@@ -127,7 +127,7 @@ class Usuario(object):
             print('administrador')
         else:
             p = Prestador.objects.get(user=user)
-            fullname=c.nombreCompleto()
+            fullname=p.nombreCompleto()
 
         output["estado"]=True
         output["token"]=token.key

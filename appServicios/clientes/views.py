@@ -48,7 +48,7 @@ class RestablecerPassword(APIView):
 
         output = Usuario().restablecerPasswordValidaCodigo(request)
         if(output["estado"]):
-            return Response({"estado":"ok","token": output}, status=status.HTTP_202_ACCEPTED)
+            return Response(output, status=status.HTTP_202_ACCEPTED)
         else:    
             return Response(output["error"], status= status.HTTP_400_BAD_REQUEST)
 

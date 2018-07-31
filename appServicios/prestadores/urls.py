@@ -17,8 +17,7 @@ urlpatterns = [
     path('Prestador/<int:id>/', views.PrestadorViewSet.as_view()),
     path('CambiarPassword/', views.CambiarPassword.as_view()),
     path('CambiarUsuario/', views.CambiarUsuario.as_view()),
-    path('RestablecerPassword/', views.RestablecerPassword.as_view()),
-    path('SesionDetalle/<int:id>/', views.SesionDetalleViewSet.as_view()),
+    path('RestablecerPassword/', views.RestablecerPassword.as_view())
 ]
 
 urlpatterns = format_suffix_patterns(urlpatterns)

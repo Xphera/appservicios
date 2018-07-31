@@ -40,16 +40,7 @@ class Sesion(object):
                 compraDetalle__estado_id = 1,
                 compraDetalle__prestador__user_id = userId
                 ).order_by('-fin')        
-        return  sesiones
-
-    def detalle(self,userId,sesionId):
-        sesiones = CompraDetalleSesion.objects.filter(                
-                Q(estado_id=2)|Q(estado_id=4),
-                compraDetalle__estado_id = 1,
-                compraDetalle__prestador__user_id = userId,
-                id = sesionId
-                ).order_by('-fin') .first()         
-        return  sesiones    
+        return  sesiones 
 
 
 

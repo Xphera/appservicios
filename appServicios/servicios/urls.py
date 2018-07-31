@@ -40,7 +40,7 @@ urlpatterns = [
     path('CancelarPaquete/', CancelarPaqueteViewSet.as_view()),
     path('RenovarPaquete/', RenovarPaqueteViewSet.as_view()),
     path('SesionChat/<int:pk>/', SesionChat.as_view()),
-    
+    path('SesionDetalle/<int:id>/', SesionDetalleViewSet.as_view()),
 ]
 
 #urlpatterns = format_suffix_patterns(urlpatterns)

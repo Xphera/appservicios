@@ -12,6 +12,7 @@ from django.db.models import Q
 from parametrizacion.models import (EstadoCompraDetalleSesion)
 
 from  servicios.logica.paquete import Paquete as PaqueteLogica
+from servicios.logica.sesion import (Sesion as servicioSesion)
 
 from  servicios.logica.chat import Chat
 
@@ -257,3 +258,10 @@ class SesionChat(APIView):
     def get(self, request,pk,format=None):
         c= Chat()
         return Response(c.obtenerMensaje(request.user.id,pk), status=status.HTTP_200_OK)
+
+@permission_classes((permissions.IsAuthenticated,))
+class SesionDetalleViewSet(APIView):    
+    def get(self, request,id,format=None):
+        sesion = servicioSesion()
+        serializer = CompraDetalleSesioneSerializer(sesion.detalle(request.user.id,id))
+        return Response(serializer.data)

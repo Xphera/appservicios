@@ -97,7 +97,7 @@ class Compra(object):
             return self.output
     
     def pagoPayU(self,value):
-
+        value = round(value,2)
         self.tc =TarjetaDeCredito.objects.get(creditCardTokenId=self.creditCardTokenId, payerId__user__id =self.user_id)
         self.ctc = CobroTarjetaDeCredito()
         self.ctc.cliente =  self.cliente
