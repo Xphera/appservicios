@@ -537,26 +537,29 @@ class RenovarPaqueteSerializer(serializers.Serializer):
 
 
 class ChatSerializer(serializers.Serializer):
-    sesionId = serializers.IntegerField()
+    compraDetalleId = serializers.IntegerField()
     userId = serializers.IntegerField()
     mensaje =  serializers.CharField(max_length=250)
 
     def validate(self,data):
-        sesion = CompraDetalleSesion.objects.filter(
-            Q(estado_id=2)  | Q(estado_id=4),
-            Q(compraDetalle__prestador__user_id = data["userId"])|Q(compraDetalle__compra__cliente__user_id = data["userId"]),
-            pk = data["sesionId"],             
+        paquete = CompraDetalle.objects.filter(
+            # Q(estado_id=2)  | Q(estado_id=4),
+            Q(prestador__user_id = data["userId"])|
+            Q(compra__cliente__user_id = data["userId"]),
+            estado_id = 1,
+            pk = data["compraDetalleId"],             
             )
 
-        if(sesion.count() == 0):
-            raise serializers.ValidationError("No existe sesión")
+        if(paquete.count() == 0):
+            raise serializers.ValidationError("Solo se puede enviar mensajes a paquetes activos")
 
         return data
 
-    @transaction.atomic
-    def create(self, validated_data):
-        c = Chat()                
-        return c.guardarMensaje(validated_data["mensaje"],validated_data["userId"],validated_data["sesionId"])
+    # @transaction.atomic
+    # def create(self, validated_data):
+    #     c = Chat() 
+    #     print(c.guardarMensaje(validated_data["mensaje"],validated_data["userId"],validated_data["compraDetalleId"]))               
+    #     return True
 
 
 

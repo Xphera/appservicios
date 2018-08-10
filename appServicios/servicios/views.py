@@ -245,20 +245,31 @@ class RenovarPaqueteViewSet(APIView):
             return Response(serializer.errors, status= status.HTTP_400_BAD_REQUEST)
 
 @permission_classes((permissions.IsAuthenticated,))
-class SesionChat(APIView):
+class CompraDetalleChat(APIView):
+
     def post(self, request,format=None):
         data = request.data
         data["userId"] = request.user.id 
         serializer = ChatSerializer(data=data)
         if(serializer.is_valid()):
-            serializer.save()
-            return Response({'ok'}, status=status.HTTP_200_OK)
+            c= Chat()
+            guardar = c.guardarMensaje(data["mensaje"],data["userId"],data["compraDetalleId"])
+            if(guardar):
+                return Response(guardar, status=status.HTTP_200_OK)
+            else:
+                return Response("Error al guardar", status= status.HTTP_400_BAD_REQUEST)   
         else:
             return Response(serializer.errors, status= status.HTTP_400_BAD_REQUEST)
-    def get(self, request,pk,format=None):
+    def get(self, request,format=None):
+        params = self.request.query_params
         c= Chat()
-        return Response(c.obtenerMensaje(request.user.id,pk), status=status.HTTP_200_OK)
-
+        output={}
+        if(params.get("compraDetalleId",None)):
+            output = c.obtenerMensaje(request.user.id,params.get("compraDetalleId",None))
+        else:
+            output = c.obtenerChat(request.user.id)
+        return Response(output)
+        
 @permission_classes((permissions.IsAuthenticated,))
 class SesionDetalleViewSet(APIView):    
     def get(self, request,id,format=None):

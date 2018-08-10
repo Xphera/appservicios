@@ -59,7 +59,6 @@ class TarjetaCredito(APIView):
             return Response(serializer.errors, status= status.HTTP_400_BAD_REQUEST)      
     
     def delete(self, request,id,format=None):
-
         try:
             td = TarjetaDeCredito.objects.get(creditCardTokenId=id, payerId__user = request.user)
             data=request.data

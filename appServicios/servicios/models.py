@@ -174,11 +174,18 @@ class Zona(models.Model):
     def __str__(self):
         return self.name     
 
-class SesionChat(models.Model):
+class CompraDetalleChat(models.Model):
+    compraDetalle  = models.ForeignKey(to='CompraDetalle', related_name='chat', on_delete=models.PROTECT)
+    created  = models.DateTimeField(auto_now_add=True)
+    modified = models.DateTimeField(auto_now=True)
+
+    
+class CompraDetalleChatMensaje(models.Model):
     mensaje = models.TextField(max_length=250)
-    compraDetalleSesion  = models.ForeignKey(to='CompraDetalleSesion', related_name='compraDetalleSesionesChat', on_delete=models.PROTECT)
+    compraDetalleChat = models.ForeignKey(to='CompraDetalleChat', related_name='chatmensaje', on_delete=models.PROTECT)
     usuario = models.ForeignKey(to=User, related_name='chatUsuario', on_delete=models.PROTECT, default=None, null=False)
     created  = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
-    def __str__(self):
-        return self.mensaje              
+
+    # def __str__(self):
+    #     return self.mensaje

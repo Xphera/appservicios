@@ -25,7 +25,7 @@ urlpatterns = [
     path('CambiarUsuario/', views.CambiarUsuario.as_view()),
     path('CambiarUsuarioValidarCodigo/', views.CambiarUsuarioValidarCodigo.as_view()),
     path('TarjetaCredito/', viewsPayU.TarjetaCredito.as_view()),
-    path('TarjetaCredito/<int:id>/', viewsPayU.TarjetaCredito.as_view()),
+    path('TarjetaCredito/<uuid:id>/', viewsPayU.TarjetaCredito.as_view()),
     path('Pay/',viewsPayU.Pay.as_view()),
     path('TarjetaCreditoPricipal/',viewsPayU.TarjetaCreditoPricipal.as_view()),
     path('SaldoBolsa/',views.SaldoBolsaViewSet.as_view()),

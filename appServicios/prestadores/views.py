@@ -91,6 +91,13 @@ class PrestadorViewSet(APIView):
                 params.get("latitud",None),
                 params.get("servicio",None)
                 )    
+            )
+        elif(params.get("servicio",None)):   
+            logicaPrestador = LogicaPrestador()         
+            return Response( 
+            logicaPrestador.PrestadorPorServicio(
+                params.get("servicio",None)
+                )    
             )  
         elif (params.get("userId",None)):
             logicaPrestador = LogicaPrestador()

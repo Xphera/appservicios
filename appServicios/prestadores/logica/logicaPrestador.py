@@ -5,6 +5,7 @@ from django.contrib.gis.geos import (GEOSGeometry)
 from django.db.models import Count
 from parametrizacion.serializers import MunicipioSerializer
 from django.conf import settings
+from servicios.models import Paquete
 
 class LogicaPrestador(object):
 
@@ -94,6 +95,33 @@ class LogicaPrestador(object):
         for q in queryset:
             if(q.zona.zona.intersects(pnt)):        
                 output.append(self.customSerializer(q,servicioId))
+        return output
+
+    def PrestadorPorServicio(self,servicioId):
+        output=[]
+        outputTemp={}
+        queryset=Prestador.objects.filter(
+                    prestador_paquetes__paquete__servicio__id = servicioId
+                    )
+                    # .values('id','zona__id','zona__name').annotate(Count("id")).order_by("-calificacion")
+                    
+        '''''
+        no se implemeta group by por que recorrer data no se puede serializar zona
+        '''''              
+        for q in queryset:
+            try:
+                if q.id not in  outputTemp[q.zona.id]['prestadores']:
+                    outputTemp[q.zona.id]['prestadores'].append(q.id)
+            except Exception as e:
+                outputTemp[q.zona.id]={
+                    'id':q.zona.id,
+                    'name':q.zona.name,
+                    'zona':zonaSerializer(q.zona).data,
+                    'prestadores':[q.id]
+                } 
+        for key, value in outputTemp.items():
+            output.append(value) 
+          
         return output
 
     def geolocalizarPrestador(self,longitud,latitud,prestadorId):

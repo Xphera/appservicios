@@ -1,13 +1,10 @@
 
 import onesignal as onesignal_sdk
 from utils.Utils import Utils
+from django.conf import settings
 
 class Onesignal(object):
     def __init__(self):
-        # self.user_auth_key ="ZDQ4OWYxZGItOTIwMi00NmE5LWI3ZTAtNWI5YzcwZjkwOGQz"
-        # self.app_auth_key= "ZTZiZDhmZDMtN2EyZS00MGY4LThhNGQtMGJhZDIwNjM1NDg2"
-        # self.app_id = "96150a2e-39ac-477d-a116-16cc8c5e2e88"
-
          self.keys={
             "prestador":{
                 "user_auth_key" : "ZDQ4OWYxZGItOTIwMi00NmE5LWI3ZTAtNWI5YzcwZjkwOGQz",
@@ -20,16 +17,15 @@ class Onesignal(object):
                 "app_id" : "d8540210-8524-4ffe-aaf1-844417fdaf2d"
             },
             "administrador":{
-                "user_auth_key" : "ZDQ4OWYxZGItOTIwMi00NmE5LWI3ZTAtNWI5YzcwZjkwOGQz",
-                "app_auth_key": "ZTZiZDhmZDMtN2EyZS00MGY4LThhNGQtMGJhZDIwNjM1NDg2",
-                "app_id" : "96150a2e-39ac-477d-a116-16cc8c5e2e88"
+                "user_auth_key" : "",
+                "app_auth_key": "",
+                "app_id" : ""
             }
         }
 
        
     def onesignalClient(self,a):
         key = self.keys[a]
-        
         return onesignal_sdk.Client(
             user_auth_key = key["user_auth_key"], 
             app={"app_auth_key":key["app_auth_key"] , "app_id":key["app_id"] }
@@ -73,25 +69,52 @@ class Onesignal(object):
             userId = sesion.compraDetalle.compra.cliente.user.id
             filtro = self.fitro(userId,"cliente")
             mensaje = sesion.compraDetalle.prestador.nombreCompleto() +" cúando "+ Utils.replaceNone(sesion.fechaInicio) +"  donde "+Utils.replaceNone(sesion.direccion)+" "+Utils.replaceNone(sesion.complemento)
-            print(sesion,sesion.id)
         else:
             print("algo")
         self.enviarNotificacion(filtro,mensaje,titulo,{'sesionId':sesion.id,'tipo':'detalleSesion'},app)
 
-    def notificacionChat(self,sesionChat,app):
-        sesion = sesionChat.compraDetalleSesion
-        titulo = "Mensaje Sesión"
-        mensaje =  sesionChat.mensaje
-        if(app=="prestador"):
-            userId = sesion.compraDetalle.prestador.user.id
-            filtro = self.fitro(userId,"prestador")
-        elif(app=="cliente"): 
-            userId = sesion.compraDetalle.compra.user.id 
-            filtro = self.fitro(userId,"cliente")
-        else:
-            print("algo")     
 
-        self.enviarNotificacion(filtro,mensaje,titulo,{'sesionId':sesion.id,'app':'sesionChat','mensaje':mensaje},app)
+    def notificacionChat(self,chat,app):
+                
+        if(app=="prestador"):              
+            userIdChat = chat.compraDetalleChat.compraDetalle.compra.cliente.user.id          
+            nombre = chat.compraDetalleChat.compraDetalle.prestador.nombreCompleto() 
+            userId = chat.compraDetalleChat.compraDetalle.prestador.user.id 
+            app="cliente"                      
+        elif(app=="cliente"): 
+            userIdChat = chat.compraDetalleChat.compraDetalle.prestador.user.id  
+            nombre = chat.compraDetalleChat.compraDetalle.compra.cliente.nombreCompleto()
+            userId = chat.compraDetalleChat.compraDetalle.compra.cliente.user.id 
+            app="prestador"                                     
+        else:
+            print("algo")
+        
+        titulo = " Chat "+chat.compraDetalleChat.compraDetalle.nombre+" "+nombre
+        filtro = self.fitro(userIdChat,app)
+        mensaje =  chat.mensaje
+        datosAdicional={
+                    "mensaje":{                            
+                            'chatId':chat.compraDetalleChat.id,
+                            'mensajeId':chat.id,
+                            'mensaje':chat.mensaje,
+                            'usuarioId':userId,            
+                            'creado': str(chat.created)
+                        },
+                    "chat":{
+                            "chatId":chat.compraDetalleChat.id,
+                            "paquete":chat.compraDetalleChat.compraDetalle.nombre,
+                            "cliente":chat.compraDetalleChat.compraDetalle.compra.cliente.nombreCompleto(),
+                            "clienteImagen":settings.MEDIA_URL+str(chat.compraDetalleChat.compraDetalle.compra.cliente.imagePath),
+                            "clienteUsuarioId":chat.compraDetalleChat.compraDetalle.compra.cliente.id,
+                            "compraDetalleId":chat.compraDetalleChat.compraDetalle.id,
+                            'compraDetalleEstadoId':chat.compraDetalleChat.compraDetalle.estado.id,
+                            "modificado":str(chat.compraDetalleChat.modified),
+                            "ultimoMensaje":chat.mensaje
+                        },
+                    'tipo':'chat'
+                }
+          
+        self.enviarNotificacion(filtro,mensaje,titulo,datosAdicional,app)
 
     def notificacionAutomatica(self,notificaciones):
         for notificacion in notificaciones:

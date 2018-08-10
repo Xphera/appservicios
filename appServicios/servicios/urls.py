@@ -39,7 +39,7 @@ urlpatterns = [
     path('CancelarSesion/', CancelarSesionViewSet.as_view()),
     path('CancelarPaquete/', CancelarPaqueteViewSet.as_view()),
     path('RenovarPaquete/', RenovarPaqueteViewSet.as_view()),
-    path('SesionChat/<int:pk>/', SesionChat.as_view()),
+    path('CompraDetalleChat/', CompraDetalleChat.as_view()), 
     path('SesionDetalle/<int:id>/', SesionDetalleViewSet.as_view()),
 ]
 
