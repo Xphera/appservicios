@@ -42,13 +42,11 @@ class TokenPrincipalSerializer(serializers.Serializer):
     def update(self, instance, validated_data):
        return validated_data
 
- 
 class TokenSerializer(serializers.Serializer):
     creditCardTokenId = serializers.UUIDField()
     maskedNumber = serializers.CharField()
     paymentMethod = serializers.CharField()
     principal= serializers.BooleanField()
-
 
 class CreateTokenSerializer(serializers.Serializer):
 
@@ -101,8 +99,7 @@ class CreateTokenSerializer(serializers.Serializer):
 
     def update(self, instance, validated_data):
        return validated_data
-
-       
+ 
 class EliminarTokenSerializer(serializers.Serializer):
 
     creditCardTokenId = serializers.UUIDField()
@@ -130,7 +127,6 @@ class EliminarTokenSerializer(serializers.Serializer):
     def update(self, instance, validated_data):
        return validated_data
 
-
 class PaySerializer(serializers.Serializer):
     #todo: revisar las fechas de inicio cuando se programe
     tokenId = serializers.UUIDField(required=False)
@@ -140,21 +136,26 @@ class PaySerializer(serializers.Serializer):
     prestadorId = serializers.IntegerField()
     idRelacionPrestadorPaquete= serializers.IntegerField()
 
-    def validate_cuotas(self,cuotas):
-        if(cuotas < 1 or cuotas > 12):
-          raise serializers.ValidationError("Número de cuotas no valido.")
-        return cuotas
+    # def validate_cuotas(self,cuotas):
+    #     if(cuotas < 1 or cuotas > 12):
+    #       raise serializers.ValidationError("Número de cuotas no valido.")
+    #     return cuotas
 
     def validate(self,data):
                 
         if('cuotas' in data):
             if(data["cuotas"] < 1 or data["cuotas"]  > 12):
-                raise serializers.ValidationError("Número de cuotas no valido.")          
+                raise serializers.ValidationError("Número de cuotas no valido.")                  
+
+        # validar pagos pendientes
+        ctc = CobroTarjetaDeCredito.objects.filter(cliente_id=data["user_id"],state="PENDING")
+        if(ctc.count()>0):
+            raise serializers.ValidationError("Actualmente hay un pago por confirmar.")
 
         cd = CompraDetalle.objects.filter(compra__cliente__user_id=data["user_id"],estado_id=1)
         if(cd.count()>0):
-            raise serializers.ValidationError({"Paquete":"el usuario cuenta con un paquete activo."})
-
+            raise serializers.ValidationError("El usuario cuenta con un paquete activo.")
+            
         return data
     
     @transaction.atomic

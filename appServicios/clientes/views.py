@@ -15,7 +15,8 @@ from clientes.serializers import (
     RegistrarInformacionBasicaSerializer,
     CambiarUsuarioSerializer,
     CambiarUsuarioValidarCodigoSerializer,
-    BolsaSerializer)
+    BolsaSerializer,
+    CerrarCuentaSerializer)
 
 from servicios.models import CompraDetalle 
 from django.conf import settings   
@@ -26,13 +27,11 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import (viewsets, permissions, mixins, generics, status)
 
-
 from utils.Utils.usuario import Usuario
-
 
 from clientes.permissions import EsDueño
 
-from utils.Utils.usuario import Usuario
+from .logica.loginSocial import loginSocial
 
 @permission_classes((permissions.AllowAny,))
 class RestablecerPassword(APIView):
@@ -127,7 +126,6 @@ class Informacion(APIView):
         data["email"] = request.user.email
         
         registrarSerializer = RegistrarInformacionBasicaSerializer(data=data)
-        
         if registrarSerializer.is_valid():
             try:
                 registrarSerializer.save()
@@ -137,18 +135,17 @@ class Informacion(APIView):
         else:
             return Response(registrarSerializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def has_permission(self, request, view):
-        '''
-        
-        value = request.data('some_integer_field', None)
-        user = request.user
+    # def has_permission(self, request, view):
+    #     '''
+    #     value = request.data('some_integer_field', None)
+    #     user = request.user
 
-        if view.action == 'create':
-            if user.name == 'David' and value > 5:
-                return False
-        '''
+    #     if view.action == 'create':
+    #         if user.name == 'David' and value > 5:
+    #             return False
+    #     '''
 
-        return True
+    #     return True
 
 class ClienteUbicaciones(APIView):
     
@@ -282,4 +279,39 @@ class MisPaqueteViewSet(APIView):
             return Response(output,status= status.HTTP_200_OK) 
         except Cliente.DoesNotExist:
             return Response("no existe cliente",status=status.HTTP_400_BAD_REQUEST)
-        
+
+
+@permission_classes((permissions.IsAuthenticated,))
+class CerrarCuenta(APIView):
+    def post(self, request,format=None):
+        data = request.data
+        data["userId"] = request.user.id
+        serializer = CerrarCuentaSerializer(data=data)
+        if serializer.is_valid():
+                u=Usuario()
+                if(u.cerrarCuenta(request.user)):
+                    return Response({"estado": "ok"})
+                else:
+                    return Response({"Se presento error al cerrar la cuenta"},status= status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response(serializer.errors, status= status.HTTP_400_BAD_REQUEST)
+
+@permission_classes((permissions.AllowAny,))
+class authfb(APIView):
+    def post(self, request,format=None):
+        lfb = loginSocial()       
+        output = lfb.loginFB(request.data["token"]) 
+        if(output["error"]):
+            return Response(output["mensaje"], status= status.HTTP_400_BAD_REQUEST)      
+        else:
+            return Response(output["mensaje"])     
+
+@permission_classes((permissions.AllowAny,))
+class authgoog(APIView):
+    def post(self, request,format=None):
+        lgo = loginSocial()   
+        output = lgo.loginGoogle(userId=request.data["userId"],token=request.data["token"]) 
+        if(output["error"]):
+            return Response(output["mensaje"], status= status.HTTP_400_BAD_REQUEST)      
+        else:
+            return Response(output["mensaje"])

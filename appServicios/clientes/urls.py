@@ -32,6 +32,10 @@ urlpatterns = [
     path('Bolsa/',views.BolsaViewSet.as_view()),
     path('MisPaquetes/',views.MisPaqueteViewSet.as_view()),
     path('RestablecerPassword/', views.RestablecerPassword.as_view()),
+    path('CerrarCuenta/', views.CerrarCuenta.as_view()),
+    path('authfb/', views.authfb.as_view()),
+    path('authgoog/', views.authgoog.as_view()),
+    path('PayConfirmacion/',viewsPayU.PaginaConfirmacion.as_view()),
 ]
 
 urlpatterns = format_suffix_patterns(urlpatterns)

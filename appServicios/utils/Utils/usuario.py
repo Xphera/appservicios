@@ -4,9 +4,10 @@ from utils.Utils.CodigosUtil import CodeFactoryUtil
 from utils.Utils import Validators
 from utils.Utils.MailUtil import EMAIL_TYPE, EmailFactory
 from django.db import DatabaseError, transaction, IntegrityError
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User,Group
 from clientes.models import (Cliente)
 from prestadores.models import (Prestador)
+from random import random
 
 class Usuario(object):
     def cambioContrenia(self,request):
@@ -123,18 +124,66 @@ class Usuario(object):
         if(user.groups.filter(name='cliente').exists()):
             c = Cliente.objects.get(user=user)
             fullname= c.nombreCompleto()
+            imagen = c.obtenerImagePath()
         elif(user.groups.filter(name='administrador').exists()):
             print('administrador')
         else:
             p = Prestador.objects.get(user=user)
             fullname=p.nombreCompleto()
+            imagen = str(p.imagePath)
 
         output["estado"]=True
         output["token"]=token.key
         output["user_id"]=user.pk
         output["email"]=user.email
         output["fullname"]=fullname
+        output["imagen"]=imagen
         return output       
+
+    def cerrarCuenta(self,user):
+        try:                           
+            # acciones cliente_cliente    
+            # cerrarCuenta = True
+            # activo = false
+            rand = str(random())
+            if(user.groups.filter(name='cliente').exists()):
+                c = Cliente.objects.get(user=user)
+                c.cuentaCerrada = True
+                c.email = "cuentaCerrada-"+rand+"-"+c.email
+                c.activo = False
+                c.save()
+            # acciones en auth_user:
+            # username = eliminado
+            # email= vacio
+            # is_activate = 0
+            user.username = "cuentaCerrada-"+rand+"-"+user.username
+            user.email = "" 
+            user.is_active=False
+            user.save()
+
+            # token:
+            # limpiar token
+            Token.objects.get(user=user).delete()
+            return True
+        except Exception as e:
+            print(e,user)
+            return False
+
+    def registroUsuario(self,email,passw):
+        user = User.objects.create_user(email, password=passw)
+        user.is_superuser = False
+        user.is_staff = False
+        user.email = email
+        user.save()
+        group = Group.objects.get(name='cliente')
+        group.user_set.add(user)
+
+        cliente = Cliente()
+        cliente.email = user.email
+        cliente.user_id = user.id
+        cliente.save()
+        return cliente
+
 
 # serializadores....................................
 class CambiarPasswordSerializer(serializers.Serializer):

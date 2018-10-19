@@ -2,6 +2,7 @@ from django.db import models
 from parametrizacion.commonChoices import (TIPO_DOCUMENTO_CHOICES, FRANQUICIAS_CHOICES, MEDIOS_DE_PAGO_CHOICES, ESTADO_SESION_CHOICES)
 from servicios.models import Compra
 from utils.Utils import Utils
+from django.conf import settings
 
 from django.contrib.auth.models import User
 # Create your models here.
@@ -21,14 +22,30 @@ class Cliente(models.Model):
     saldoBolsa = models.FloatField(default=0)
     activo = models.BooleanField(default=False)
     imagePath = models.FileField(upload_to="clientes",null=True)
+    cuentaCerrada = models.BooleanField(default=False)
+    idFb = models.CharField(max_length=80, verbose_name="idFb", null=True)
+    idGoog = models.CharField(max_length=80, verbose_name="idGoog", null=True)
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
 
     def nombreCompleto(self):
-        return Utils.replaceNone(self.nombres)+' '+Utils.replaceNone(self.primerApellido)+' '+Utils.replaceNone(self.segundoApellido)
+        # si usuario cierra cuentas
+        if(self.cuentaCerrada):
+            return 'No disponible'
+        else:
+            return Utils.replaceNone(self.nombres)+' '+Utils.replaceNone(self.primerApellido)+' '+Utils.replaceNone(self.segundoApellido)
+
+    def obtenerImagePath(self):
+        # si usuario cierra cuentas
+        if(self.cuentaCerrada):
+            return settings.MEDIA_URL+'clientes/nn.PNG'
+        elif(self.imagePath):
+            return settings.MEDIA_URL+str(self.imagePath)
+        else:                
+            return settings.MEDIA_URL+'clientes/nn.PNG'
 
     def __str__(self):
-        return str({"nombre":self.nombreCompleto(),"email":self.email})
+        return str({"nombre":self.nombreCompleto(),"email":self.email,"cuentaCerrada":self.cuentaCerrada})
 
 
 class Ubicacion(models.Model):

@@ -76,7 +76,6 @@ class RestablecerPassword(APIView):
         else:    
             return Response(output["error"], status= status.HTTP_400_BAD_REQUEST)
 
-
         
 @permission_classes((EsPrestador,))
 class PrestadorViewSet(APIView):
@@ -202,14 +201,14 @@ class SesionProximaViewSet(APIView):
         return Response(serializer.data)
 
 @permission_classes((permissions.IsAuthenticated,EsPrestador,))
-class SesionFinalizadaViewSet(ListAPIView):    
+class SesionFinalizadaViewSet(APIView):    
     def get(self, request,format=None):
         sesiones = Sesion()   
         serializer = CompraDetalleSesioneSerializer(sesiones.finalizada(request.user.id),many=True)
         return Response(serializer.data)
 
 @permission_classes((permissions.IsAuthenticated,EsPrestador,))
-class SesionIniciadaViewSet(ListAPIView):
+class SesionIniciadaViewSet(APIView):
     
     def get(self, request,format=None):
         sesiones = Sesion()   

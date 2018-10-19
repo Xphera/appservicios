@@ -1,0 +1,125 @@
+daniel@carvajaljimenez.com
+Axon2010
+ññññññññññññññññññññññññññ
+	
+sudo apt-get install python3.6-dev
+donde esta 
+mod_wsgi-express module-config
+https://stackoverflow.com/questions/44914961/install-mod-wsgi-on-ubuntu-with-python-3-6-apache-2-4-and-django-1-11?rq=1
+ññññññññññññññññññññññññññ
+oooooooooooooooooooooooooo
+https://stackoverflow.com/questions/49096859/change-mod-wsgi-from-python3-5-to-3-6
+python3.6 -m pip install mod_wsgi
+oooooooooooooooooooooooooo
+pppppppppppppppppppppppppp
+https://stackoverflow.com/questions/34328983/python-geos-importerror
+pppppppppppppppppppppppppp
+
+sudo add-apt-repository ppa:deadsnakes/ppa
+sudo apt-get update
+sudo apt-get install python3.6
+sudo update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.5 2
+sudo update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.6 6
+sudo update-alternatives --config python3 seleciona 0
+pip
+sudo apt install python3-pip
+env 
+sudo pip3 install --upgrade virtualenv
+virtualenv appservicios
+
+----------------------------
+Descomprimir: tar -xzvf archivo.tar.gz
+
+--------------------------------
+
+pip install Django==2.1
+pip install djangorestframework
+pip install markdown       
+pip install django-cors-headers	
+pip install django-rest-swagger
+sudo apt-get install python3.6-dev libmysqlclient-dev
+python3 -m pip install mysqlclient
+pip install configparser
+pip install inflect
+pip install python-dateutil
+pip install djangorestframework-gis
+pip install dateparser
+pip install onesignal_sdk
+
+pip install django-filter
+django_filtersdjango_filters
+pip install Pillow
+pip install facebook-sdk
+
+
+
+
+
+*********************************
+jarsigner -verbose -tsa http://timestamp.digicert.com -tsacert testCliente  -sigalg SHA256withRSA -digestalg SHA1 -keystore ./\keystores\test.jks  ./\platforms\android\app\build\outputs\apk\release\app-release-unsigned.apk testCliente  -storepass AAbbccdd1234
+jarsigner -verbose -tsa http://timestamp.digicert.com -tsacert testCliente  -sigalg SHA256withRSA -digestalg SHA1 -keystore ./keystores\keystores\test.jks  ./platforms\android\app\build\outputs\apk\release\app-release-unsigned.apk testCliente  -storepass AAbbccdd1234
+
+ionic cordova plugin add cordova-plugin-facebook4 --variable APP_ID="288418815095991" --variable APP_NAME="appservicios" --variable ANDROID_SDK_VERSION="4.34.0"
+*********************************
+
+
+You can instead use the mysqlclient package as a drop-in replacement for MySQL-python. It is a fork of MySQL-python with added support for Python 3.
+
+I had luck with simply
+
+pip install mysqlclient
+in my python3.4 virtualenv after
+
+sudo apt-get install python3-dev libmysqlclient-dev
+
+
+
+https://stackoverflow.com/questions/37294127/python-gdal-2-1-installation-on-ubuntu-16-04
+
+down vote
+"python-gdal" version 2.1.0 requires gdal version 2.1.0 . So the install of "libgdal1" version 1.11.3 isn't sufficient. Get gdal-2.1.0 : http://download.osgeo.org/gdal/2.1.0/gdal-2.1.0.tar.gz
+
+And the ~43 dependencies : $ sudo apt-get build-dep gdal
+
+Building and installing gdal-2.1.0 and the Python bindings :
+
+$ tar -xzvf gdal-2.3.1.tar.gz
+$ cd gdal-2.3.1/
+$ ./configure --prefix=/usr/
+$ make
+$ sudo make install
+$ cd swig/python/
+$ sudo python setup.py install
+
+
+251218
+
+
+apache 
+
+sudo apt update
+sudo apt install apache2
+###############config site wsgi##########################
+
+"""""""""""""""""""""####
+https://www.linode.com/community/questions/311/how-do-i-enabledisable-a-website-hosted-with-apache
+sitea2ensite <site>
+a2dissite <site>
+
+#####################wsgi apache
+pip install mod_wsgi
+Display the config to add to Apache configuration file to load this mod_wsgi by running:
+
+
+
+
+https://github.com/ceos-seo/data_cube_ui/issues/2
+mod_wsgi-express module-config
+Take the output of above command to display config and add to Apache configuration.
+
+
+python .\manage.py notificacionesAutomaticas NOTIFICACION_SESIONES_NO_INICIADA
+python .\manage.py notificacionesAutomaticas NOTIFICACION_PROXIMAS_SESIONES
+
+
+/usr/lib/python3/dist-packages

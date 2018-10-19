@@ -16,7 +16,7 @@ class CustomAuthToken(ObtainAuthToken):
         return Response(
             u.infoToken(user)
         )
-        
+          
         # token, created = Token.objects.get_or_create(user=user)
        
         # if(user.groups.filter(name='cliente').exists()):

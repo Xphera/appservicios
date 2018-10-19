@@ -5,8 +5,11 @@ from rest_framework.views import APIView
 from rest_framework import (permissions,status)
 
 from clientes.models import (Cliente)
-from payU.models import TarjetaDeCredito
+from payU.models import TarjetaDeCredito,CobroTarjetaDeCredito
 from servicios.models import Paquete
+
+from payU.logica.compra import Compra
+import json
 
 from payU.serializers import (
     CreateTokenSerializer,
@@ -17,12 +20,9 @@ from payU.serializers import (
 )
 
 
-
-
 # Create your views here.
 
 @permission_classes((permissions.IsAuthenticated,))
-
 class TarjetaCreditoPricipal(APIView):
     def post(self, request,format=None):
         data=request.data
@@ -35,7 +35,6 @@ class TarjetaCreditoPricipal(APIView):
 
         else:
             return Response(serializer.errors, status= status.HTTP_400_BAD_REQUEST)      
-
 
 @permission_classes((permissions.IsAuthenticated,))
 class TarjetaCredito(APIView):
@@ -78,8 +77,7 @@ class TarjetaCredito(APIView):
 
 @permission_classes((permissions.IsAuthenticated,))
 class Pay(APIView):
-    def post(self, request,format=None):
-       
+    def post(self, request,format=None):       
         data=request.data
         data["user_id"] = request.user.id
         serializer = PaySerializer(data=data)
@@ -92,3 +90,15 @@ class Pay(APIView):
                 return Response(resp, status= status.HTTP_400_BAD_REQUEST)  
         else:
             return Response(serializer.errors, status= status.HTTP_400_BAD_REQUEST)
+
+@permission_classes((permissions.AllowAny,))
+class PaginaConfirmacion(APIView):
+    def post(self, request,format=None): 
+        try:
+            data = request.data
+            ctc = CobroTarjetaDeCredito.objects.get(referenceCode=data["reference_sale"])                                
+            c = Compra(eval(ctc.datos))
+            c.pagoPayUConfirmacion(ctc,data)
+        except Exception as e:
+            print(e)  
+        return Response(status=status.HTTP_202_ACCEPTED)

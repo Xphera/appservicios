@@ -25,7 +25,7 @@ SECRET_KEY = '_m25+$nzl=#^x1r+r-^2^&*!3!iqrknsbj4-424j@57ivzg-_6'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['127.0.0.1','192.168.226.77','192.168.1.62','192.168.137.1']
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -104,14 +104,21 @@ DATABASES = {
     #     'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
     # },
      'default': {
-        # 'ENGINE': 'django.db.backends.mysql',
         'ENGINE': 'django.contrib.gis.db.backends.mysql',
-        'NAME': 'appservicios',
-        'USER': 'root',
-        'PASSWORD': '',
-        'HOST': '127.0.0.1',
+        'NAME': 'appsericiosCaja',
+        'USER': 'appservicios',
+        'PASSWORD': 'AAbbccdd1234',
+        'HOST': 'appservicios.cgr8grgqhnva.us-east-2.rds.amazonaws.com',
         'PORT': '3306',
     }
+    #  'default': {
+    #     'ENGINE': 'django.contrib.gis.db.backends.mysql',
+    #     'NAME': 'appservicios',
+    #     'USER': 'appservicios',
+    #     'PASSWORD': 'AAbbccdd1234',
+    #     'HOST': 'appservicios.cgr8grgqhnva.us-east-2.rds.amazonaws.com',
+    #     'PORT': '3306',
+    # }
 
 }
 

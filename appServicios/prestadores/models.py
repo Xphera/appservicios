@@ -4,6 +4,7 @@ from parametrizacion.commonChoices import TIPO_DOCUMENTO_CHOICES
 from parametrizacion.models import Municipio
 from django.contrib.auth.models import User
 from utils.Utils import Utils
+from django.conf import settings
 
 # Create your models here.
 
@@ -42,12 +43,16 @@ class Prestador(models.Model):
 
     def nombreCompleto(self):
         return Utils.replaceNone(self.nombres)+' '+Utils.replaceNone(self.primerApellido)+' '+Utils.replaceNone(self.segundoApellido)
+    
+    def obtenerImagePath(self):
+       return settings.MEDIA_URL+str(self.imagePath)
+
 
     class Meta:
         verbose_name_plural = "prestadores"
 
     def __str__(self):
-        return str({"nombre":self.nombres+" "+self.primerApellido+" "+self.segundoApellido,"documento":self.numeroDocumento})
+        return str({"nombre":self.nombres+" "+self.primerApellido+" "+self.segundoApellido,"documento":self.zona})
 
 class Disponibilidad(models.Model):
     dia = models.IntegerField()
@@ -61,6 +66,8 @@ class PrestadorPaquete(models.Model):
     valor = models.IntegerField()
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
+    def __str__(self):
+        return str({"Prestador":self.prestador.nombres+" Paquete: "+self.paquete.nombre})
 
 class Formacion(models.Model):
     prestador = models.ForeignKey(to='Prestador', related_name='prestador_formacion', on_delete=models.PROTECT, default=None, null=True)

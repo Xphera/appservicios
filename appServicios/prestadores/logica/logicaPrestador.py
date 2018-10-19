@@ -25,7 +25,7 @@ class LogicaPrestador(object):
                 response_data['fechaNacimiento'] = prestador.fechaNacimiento               
                 response_data['perfil'] = prestador.perfil
                 response_data['calificacion'] = prestador.calificacion
-                response_data['imagePath'] = settings.MEDIA_URL+str(prestador.imagePath)
+                response_data['imagePath'] = prestador.obtenerImagePath() #settings.MEDIA_URL+str(prestador.imagePath)
                 response_data['profesion'] = prestador.profesion
                 response_data['insignia'] = prestador.insignia
 
@@ -64,7 +64,7 @@ class LogicaPrestador(object):
                        'calificacion': cds.calificacion,
                        'paquete': cds.compraDetalle.nombre,
                        'comentario': cds.comentario,
-                       'imagePath':  settings.MEDIA_URL+str(cds.compraDetalle.compra.cliente.imagePath),
+                       'imagePath': cds.compraDetalle.compra.cliente.obtenerImagePath(),  #settings.MEDIA_URL+str(cds.compraDetalle.compra.cliente.imagePath),
                        'cliente': cds.compraDetalle.compra.cliente.nombreCompleto(),
                     #    'cliente': cds.compraDetalle.compra.cliente.nombres+' '+cds.compraDetalle.compra.cliente.primerApellido+' '+cds.compraDetalle.compra.cliente.segundoApellido,
                     })

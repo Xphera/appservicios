@@ -4,12 +4,14 @@ from parametrizacion.models import Sexo
 from clientes.models import (Cliente, Ubicacion, MedioDePago,Bolsa)
 from servicios.models import Compra
 from parametrizacion.commonChoices import TIPO_DOCUMENTO_CHOICES
-from django.contrib.auth.models import User,Group
+from django.contrib.auth.models import User
 from django.db import DatabaseError, transaction, IntegrityError
 
 from utils.Utils.CodigosUtil import CodeFactoryUtil
 from utils.Utils import Validators
 from utils.Utils.MailUtil import EMAIL_TYPE, EmailFactory
+
+from utils.Utils.usuario import Usuario
 
 """
 class ClienteSerializer_old(serializers.ModelSerializer):
@@ -119,18 +121,21 @@ class RegistroUsuarioSerializer(serializers.Serializer):
     @transaction.atomic
     def create(self, validated_data):
 
-        user = User.objects.create_user(validated_data["email"], password=validated_data["passw"])
-        user.is_superuser = False
-        user.is_staff = False
-        user.email = validated_data["email"]
-        user.save()
-        group = Group.objects.get(name='cliente')
-        group.user_set.add(user)
+        # user = User.objects.create_user(validated_data["email"], password=validated_data["passw"])
+        # user.is_superuser = False
+        # user.is_staff = False
+        # user.email = validated_data["email"]
+        # user.save()
+        # group = Group.objects.get(name='cliente')
+        # group.user_set.add(user)
 
-        cliente = Cliente()
-        cliente.email = user.email
-        cliente.user_id = user.id
-        cliente.save()
+        # cliente = Cliente()
+        # cliente.email = user.email
+        # cliente.user_id = user.id
+        # cliente.save()
+
+        cliente = Usuario().registroUsuario(validated_data["email"],validated_data["passw"])
+        
 
         EmailFactory.getInstance(
             email_type=EMAIL_TYPE.VALIDACION_REGISTRO_CLIENTE,
@@ -189,14 +194,15 @@ class RegistrarInformacionBasicaSerializer(serializers.Serializer):
     HUC008 - Registro de informacion adicional
     '''
     email = serializers.EmailField()
-    tipoDocumento = serializers.ChoiceField(choices=TIPO_DOCUMENTO_CHOICES,allow_null=True)
-    numeroDocumento = serializers.CharField(max_length=11,allow_null=True)
-    nombres = serializers.CharField(max_length=80,allow_null=True)
-    primerApellido = serializers.CharField(max_length=80,allow_null=True)
-    segundoApellido = serializers.CharField(max_length=80,allow_null=True)
-    telefono = serializers.CharField(max_length=80,allow_null=True)
-    fechaNacimiento = serializers.DateField(allow_null=True)
+    tipoDocumento = serializers.ChoiceField(choices=TIPO_DOCUMENTO_CHOICES)#,allow_null=True
+    numeroDocumento = serializers.CharField(max_length=11)#,allow_null=True
+    nombres = serializers.CharField(max_length=80)#,allow_null=True
+    primerApellido = serializers.CharField(max_length=80)#,allow_null=True
+    segundoApellido = serializers.CharField(max_length=80)#,allow_null=True
+    telefono = serializers.CharField(max_length=80)#,allow_null=True
+    fechaNacimiento = serializers.DateField()#allow_null=True
     sexo = serializers.PrimaryKeyRelatedField(queryset=Sexo.objects.all())
+    imagePath = serializers.FileField(read_only=True)
 
     def validate_tipoDocumento(self,tipo):
 
@@ -215,7 +221,7 @@ class RegistrarInformacionBasicaSerializer(serializers.Serializer):
             raise serializers.ValidationError(detail="solo se permiten valores alfanumerico")
         return primerApellido
 
-    def validate_segundoApellido(self, segundoApellido):
+    def validate_segundoApellido(self, segundoApellido):        
         if (not Validators.es_alfanumerico(segundoApellido)):
             raise serializers.ValidationError(detail="solo se permiten valores alfanumerico")
         return segundoApellido
@@ -307,7 +313,25 @@ class BolsaSerializer(serializers.ModelSerializer):
         model = Bolsa
         fields = ('id', 'tipo', 'descripcion', 'valor','created')       
 
+class CerrarCuentaSerializer(serializers.Serializer):
+    userId = serializers.IntegerField()
+    terminosCondiciones = serializers.BooleanField()
+    password = serializers.CharField(max_length=30)
 
+    def validate(self,data):
+        if(data["terminosCondiciones"] != True):
+            raise serializers.ValidationError("Acepté terminos y condiciones")
+        cliente = Cliente.objects.get(user_id=data["userId"])
+            # validar contraseña
+        if not cliente.user.check_password(data['password']):
+             raise serializers.ValidationError("La contraseña es incorrecta")
+            # sin paquetes activos
+        if(cliente.compras.filter(compradetalle__estado__id = 1).count()):
+             raise serializers.ValidationError("La cuenta no se puede cerrar cuenta. Por que hay un paquete de servicio activo")
+            # sin saldo en bolsa
+        if(cliente.saldoBolsa > 0):
+            raise serializers.ValidationError("La cuenta no se puede cerrar cuenta. Hasta que el saldo en bolsa sea cero.")
+        return data
 
 ''' --------------------------------------------------------------------------------------------------------------  '''
 #SERIALIZER PARA API NAVEGABLE
@@ -321,3 +345,5 @@ class MedioDePagoSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = MedioDePago
         fields = ('id','tipo','franquicia','banco')
+
+

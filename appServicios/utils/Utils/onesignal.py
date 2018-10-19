@@ -104,7 +104,7 @@ class Onesignal(object):
                             "chatId":chat.compraDetalleChat.id,
                             "paquete":chat.compraDetalleChat.compraDetalle.nombre,
                             "cliente":chat.compraDetalleChat.compraDetalle.compra.cliente.nombreCompleto(),
-                            "clienteImagen":settings.MEDIA_URL+str(chat.compraDetalleChat.compraDetalle.compra.cliente.imagePath),
+                            "clienteImagen": chat.compraDetalleChat.compraDetalle.compra.cliente.obtenerImagePath(), #settings.MEDIA_URL+str(chat.compraDetalleChat.compraDetalle.compra.cliente.imagePath),
                             "clienteUsuarioId":chat.compraDetalleChat.compraDetalle.compra.cliente.id,
                             "compraDetalleId":chat.compraDetalleChat.compraDetalle.id,
                             'compraDetalleEstadoId':chat.compraDetalleChat.compraDetalle.estado.id,

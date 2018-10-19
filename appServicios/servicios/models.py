@@ -8,7 +8,7 @@ from django.contrib.auth.models import User
 # Create your models here.
 
 class Categoria(models.Model):
-    nombre = models.CharField(max_length=20,unique=True,null=False)
+    nombre = models.CharField(max_length=30,unique=True,null=False)
     detalle = models.CharField(max_length=150,null=False)
     imagePath = models.FileField(upload_to='categorias',null=False)
     created = models.DateTimeField(auto_now_add=True)
@@ -45,7 +45,7 @@ class Paquete(models.Model):
 
 
 class Compra(models.Model):
-    cliente  = models.ForeignKey(to='clientes.Cliente',related_name="clientes", on_delete=models.PROTECT)    
+    cliente  = models.ForeignKey(to='clientes.Cliente',related_name="compras", on_delete=models.PROTECT)    
     medioPago = models.ForeignKey(to="parametrizacion.TipoMedioPago",on_delete=models.PROTECT)
     valor    = models.FloatField()
     estado  = models.ForeignKey(to="parametrizacion.EstadoCompra",on_delete=models.PROTECT)
@@ -53,7 +53,7 @@ class Compra(models.Model):
     modified = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return ( self.cliente+'-'+self.cliente+'$['+str(self.valor)+']')
+        return ( self.cliente.nombreCompleto()+'$['+str(self.valor)+']')
     
 class CompraDetalle(models.Model):
     compra  = models.ForeignKey(to='Compra', related_name='compradetalle', on_delete=models.PROTECT) 
